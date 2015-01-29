@@ -15,5 +15,6 @@ protected:
 
 protected:
 	Box b, b2;
+	Sphere sphere;
 	float f;
 };

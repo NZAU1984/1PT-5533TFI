@@ -1,0 +1,23 @@
+﻿Build started 2015-01-29 00:28:19.
+     1>Project "C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\glbase\GLBase.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W4 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\tmp\int\Debug_Win32\glbase\\" /Fd"C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\tmp\int\Debug_Win32\glbase\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt ..\..\src\glbase\scene.cpp
+         scene.cpp
+     1>c:\users\nzau\documents\git\ift3355\tp1\src\glbase\scene.h(77): warning C4512: 'Sphere' : assignment operator could not be generated
+                 c:\users\nzau\documents\git\ift3355\tp1\src\glbase\scene.h(64) : see declaration of 'Sphere'
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\build\Debug_Win32\glbase.exe" /INCREMENTAL /NOLOGO Glu32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\build\Debug_Win32\glbase.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /ENTRY:"mainCRTStartup" /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\build\Debug_Win32\glbase.lib" /MACHINE:X86 C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\tmp\int\Debug_Win32\glbase\core.obj
+         C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\tmp\int\Debug_Win32\glbase\log.obj
+         C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\tmp\int\Debug_Win32\glbase\main.obj
+         C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\tmp\int\Debug_Win32\glbase\misc.obj
+         C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\tmp\int\Debug_Win32\glbase\scene.obj
+         C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\tmp\int\Debug_Win32\glbase\texture.obj
+         C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\tmp\int\Debug_Win32\glbase\tp1.obj
+         C:\Users\NZAU\Documents\Git\IFT3355\TP1\tmp\build\Debug_Win32\glew\glew.lib
+         C:\Users\NZAU\Documents\Git\IFT3355\TP1\tmp\build\Debug_Win32\glfw\glfw.lib
+         GLBase.vcxproj -> C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\build\Debug_Win32\glbase.exe
+     1>Done Building Project "C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\glbase\GLBase.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.04

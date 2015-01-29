@@ -51,3 +51,27 @@ public:
 
 	virtual void Render() override;
 };
+
+/*
+ Class Sphere
+
+ Draws a sphere with one top vertex, one bottom vertex and nStacks stacks with nSlices vertices on each,
+ so the total number of vertices is 2 + (_nStacks * _nSlices).
+
+ A 'stack' here represents a fixed Y coordinate for which we create _nSlices (X, Z) coordinates that
+ estimate a circle around the center ((X, Z) = (0, 0)).
+*/
+class Sphere : public Shape
+{
+public:
+	/* Constructor */
+	Sphere(vec4 color, int nUpperStacks, int nSlices, float radius);
+
+	/* Rendering method. */
+	virtual void Render() override;
+
+protected:
+	/* Number of stacks and, for each stack, number of slices (vertices). */
+	const int _nStacks, _nSlices, _vertexOrderVectorSize;
+	const float _radius;
+};

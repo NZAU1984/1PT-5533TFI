@@ -1,0 +1,18 @@
+﻿Build started 2015-01-28 23:20:27.
+     1>Project "C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\glew\glew.vcxproj" on node 2 (Rebuild target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /nologo /W0 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D _CRT_SECURE_NO_WARNINGS /D UNICODE /D WINVER=0x0501 /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\tmp\int\Debug_Win32\glew\\" /Fd"C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\tmp\int\Debug_Win32\glew\vc120.pdb" /Gd /TC /analyze- /errorReport:prompt ..\..\src\glew\glew.c ..\..\src\glew\glewinfo.c ..\..\src\glew\visualinfo.c
+         glew.c
+         glewinfo.c
+         visualinfo.c
+         Generating Code...
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\Lib.exe /OUT:"C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\tmp\build\Debug_Win32\glew\glew.lib" OpenGL32.lib /NOLOGO /ignore:4006 C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\tmp\int\Debug_Win32\glew\glew.obj
+         C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\tmp\int\Debug_Win32\glew\glewinfo.obj
+         C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\tmp\int\Debug_Win32\glew\visualinfo.obj
+         glew.vcxproj -> C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\..\tmp\build\Debug_Win32\glew\glew.lib
+     1>Done Building Project "C:\Users\NZAU\Documents\Git\IFT3355\TP1\vs12\glew\glew.vcxproj" (Rebuild target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.28

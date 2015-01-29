@@ -353,6 +353,7 @@ void Core::KeyCallback(GLFWwindow* /*w*/, int key, int /*scancode*/, int action,
 		return;
 	case GLFW_KEY_D:
 		_callback_object->OnKeyD(down);
+		return; // fix suggested by Melino
 	case GLFW_KEY_E:
 		_callback_object->OnKeyE(down);
 		return;
