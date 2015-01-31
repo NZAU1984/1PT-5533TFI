@@ -16,5 +16,6 @@ protected:
 protected:
 	Box b, b2;
 	Sphere sphere;
+	Cylinder cylinder, cylinder1;
 	float f;
 };

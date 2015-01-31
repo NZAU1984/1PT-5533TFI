@@ -75,3 +75,16 @@ protected:
 	const int _nStacks, _nSlices, _vertexOrderVectorSize;
 	const float _radius;
 };
+
+class Cylinder : public Shape
+{
+public:
+	/* Constructor */
+	Cylinder(vec4 color, int nSlices, float height, float radius);
+
+	/* Rendering method. */
+	virtual void Render() override;
+
+protected:
+	const int _nSlices, _nTrianglesOnSide, _offsetTop, _offsetSide, _offsetBottom;
+};

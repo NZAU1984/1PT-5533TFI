@@ -354,3 +354,87 @@ void Sphere::Render()
 }
 
 #pragma endregion
+
+#pragma region CYLINDER
+
+Cylinder::Cylinder(vec4 color, int nSlices, float height, float radius) :
+	_nSlices(nSlices),
+	_nTrianglesOnSide(nSlices * 2 + 2),
+	_offsetTop(0),
+	_offsetSide(nSlices + 1),
+	_offsetBottom(nSlices * 3 + 3)
+{
+	_vertexBuffer = _indexBuffer = BAD_BUFFER;
+
+	_color = color;
+
+	// ...
+
+	int nVertices = _nSlices * 4 + 4;
+
+	// !! MEMORY LEAK !!
+	VertexPositionNormal* vertices = new VertexPositionNormal[nVertices];
+
+	float upperHeight = height / 2.0f;
+	float lowerHeight = -upperHeight;
+
+	int indexTop = 0;
+
+	vertices[_offsetTop] = { vec3(0, upperHeight, 0), vec3(0, 1, 0) };
+	vertices[nVertices - 1] = { vec3(0, lowerHeight, 0), vec3(0, -1, 0) };
+
+	for (int i = 0; i <= _nSlices; ++i)
+	{
+		float theta = ((glm::pi<float>() * 2) / _nSlices) * i;
+		float x = radius * glm::cos(theta);
+		float z = radius * glm::sin(theta);
+
+		int offset = _offsetSide + (i * 2);
+
+		vertices[_offsetTop + i]    = { vec3(x, upperHeight, z), vec3(0, 1, 0) };
+		vertices[offset]            = { vec3(x, upperHeight, z), glm::normalize(vec3(x, 0, z)) };
+		vertices[offset + 1]        = { vec3(x, lowerHeight, z), glm::normalize(vec3(x, 0, z)) };
+		vertices[_offsetBottom + i] = { vec3(x, lowerHeight, z), vec3(0, -1, 0) };
+	}
+
+
+	// Create Vertex Array Object
+	glGenVertexArrays(1, &_vao);
+	glBindVertexArray(_vao);
+
+	// Generate Vertex Buffer
+	glGenBuffers(1, &_vertexBuffer);
+
+	// Fill Vertex Buffer
+	glBindBuffer(GL_ARRAY_BUFFER, _vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, (sizeof(vec3) * 2) * nVertices, vertices, GL_STATIC_DRAW);
+
+	// Set Vertex Attributes
+	glEnableVertexAttribArray(attribute_position);
+	glVertexAttribPointer(attribute_position, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPositionNormal), (const GLvoid*)0);
+	glEnableVertexAttribArray(attribute_normal);
+	glVertexAttribPointer(attribute_normal, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPositionNormal), (const GLvoid*)(0 + sizeof(vec3)));
+
+	glBindVertexArray(0);
+
+	debugGLError();
+
+	/* vertices was created on the heap, possible memory leak solved by calling delete[]. Also, OpenGL does a copy
+	of the vertices, so no risk. */
+	delete[] vertices;
+}
+
+void Cylinder::Render()
+{
+	Shape::Render();
+
+	glBindVertexArray(_vao);
+
+	glDrawArrays(GL_TRIANGLE_FAN, _offsetTop, _nSlices);
+	glDrawArrays(GL_TRIANGLE_STRIP, _offsetSide, _nTrianglesOnSide);
+	glDrawArrays(GL_TRIANGLE_FAN, _offsetBottom, _nSlices);
+
+	glBindVertexArray(0);
+}
+
+#pragma endregion
