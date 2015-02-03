@@ -3,6 +3,9 @@
 #include <string>
 #include <vector>
 
+#include <thread>         // std::this_thread::sleep_for
+#include <chrono>         // std::chrono::seconds
+
 #pragma region NODE
 
 GLint Node::uniform_model = -1, Node::uniform_color = -1;
@@ -65,6 +68,32 @@ void Shape::Render()
 	}
 }
 
+void Shape::applyTransformatioMatrix(VertexPositionNormal* vertices, uint nVertices, const glm::mat4& transformationMatrix)
+{
+	_LOG_INFO() << "???";
+	if (transformationMatrix != glm::mat4())
+	{
+		_LOG_INFO() << "Shape::applyTransMatrix() :: NOT IDENTITY";
+		
+		for (uint i = 0; i < nVertices; ++i)
+		{
+			VertexPositionNormal* currentVertex = &vertices[i];
+			vec4 currentVertexPosition = vec4((*currentVertex).position, 1);
+			vec4 currentVertexNormal = vec4((*currentVertex).normal, 1);
+			(*currentVertex).position = vec3(transformationMatrix * currentVertexPosition);
+			(*currentVertex).normal = vec3(transformationMatrix * currentVertexNormal);
+		}
+	}
+		_LOG_INFO() << "End...";
+}
+
+glm::vec3 Shape::getCenterVector() const
+{
+	glm::vec4 transformedCenter = _transform * glm::vec4(0, 0, 0, 1);
+
+	return glm::vec3(transformedCenter.x, transformedCenter.y, transformedCenter.z);
+}
+
 Shape::~Shape()
 {
 	if (_vertexBuffer != BAD_BUFFER)
@@ -79,8 +108,16 @@ Shape::~Shape()
 
 #pragma region BOX
 
-Box::Box(vec4 color)
+/*Box::Box(vec4 color)
 {
+	glm::mat4 dummyMatrix;
+	Box(color, dummyMatrix);
+}*/
+/* Constructs a cube with a color corresponding to 'color' and applies to it an initial transformation matrix (optional
+parameter). */
+Box::Box(vec4 color, const mat4& initialTransformationMatrix)
+{
+	_LOG_INFO() << "blablabla ; " << color[0] << ", " << color[1] << ", " << color[2];
 	_vertexBuffer = _indexBuffer = BAD_BUFFER;
 
 	_color = color;
@@ -140,8 +177,15 @@ Box::Box(vec4 color)
 		{ vec3(1, 1, 0), vec3(0, 0, -1) }
 	};
 
-    for (uint x = 0; x < 36; x++)
+	
+
+	for (uint x = 0; x < 36; x++)
+	{
 		vertices[x].position -= 0.5;
+	}
+
+	/* Modification from original code. Applies an initial transformation matrix. */
+	applyTransformatioMatrix(vertices, 36, initialTransformationMatrix);
 
 	// Create Vertex Array Object
 	glGenVertexArrays(1, &_vao);
@@ -180,11 +224,25 @@ void Box::Render()
 
 #pragma region SPHERE
 
-Sphere::Sphere(vec4 color, int nUpperStacks, int nSlices, float radius) :
-	/* Total number of stacks, '+ 1' is for the middle stack. */
+/*Sphere::Sphere(vec4 color, uint nUpperStacks, uint nSlices, float radius) :
 	_nStacks(2 * nUpperStacks + 1),
 
 	_nSlices(nSlices),
+
+	_vertexOrderVectorSize((2 * (nSlices * 3)) + (((2 * nUpperStacks) * (2 * nSlices)) * 3)),
+
+	_radius(radius)
+{
+	glm::mat4 dummyMatrix;
+	Sphere(color, nUpperStacks, nSlices, radius, glm::mat4());
+}*/
+
+/* Sphere constructor. Creates a sphere with a radius of 'radius'. Between the top vertex and the middle of the sphere
+are 'nUpperStacks' stacks, which are a circle of 'nSlices' vertices used to approximate a circle. There is the same
+amount of stacks below the middle. The middle is also a circle and also had 'nSlices' vertices. Finally, there is a
+bottom vertex. The sphere will have a color defined by 'color' and may use an initial transformation matrix to
+initially transform every vertex to reduce calculations when a frame is rendered. */
+Sphere::Sphere(vec4 color, uint nUpperStacks, uint nSlices, float radius, const mat4& initialTransformationMatrix) :
 
 	/* Total number of elements in vertexOrderVector. For every triangle, there are 3 indices corresponding each to a
 	specific vertex.
@@ -199,24 +257,28 @@ Sphere::Sphere(vec4 color, int nUpperStacks, int nSlices, float radius) :
 	*/
 	_vertexOrderVectorSize((2 * (nSlices * 3)) + (((2 * nUpperStacks) * (2 * nSlices)) * 3)),
 	
+	/* Storing radius for collision detection. */
 	_radius(radius)
 {
 	_vertexBuffer = _indexBuffer = BAD_BUFFER;
 
 	_color = color;
 
+	/* Total number of stacks, '+ 1' is for the middle stack. */
+	uint nStacks = 2 * nUpperStacks + 1;
+
 	/* Total number of vertices. '+ 2' for top and bottom vertices. */
-	int nTotalVertices = (_nSlices * _nStacks) + 2;
+	uint nVertices = (nSlices * nStacks) + 2;
 
 	/* Array of vertices
 	=> 'NEW' OPERATOR :: CREATED ON HEAP :: POSSIBLE MEMORY LEAK => solved by using 'delete[]' further below. 
 	*/
-	VertexPositionNormal* vertices = new VertexPositionNormal[nTotalVertices];
+	VertexPositionNormal* vertices = new VertexPositionNormal[nVertices];
 
 	/* Indices of top and bottom vertices. Indices will go from the highest vertex (topIndex) to the lower vertex
 	(bottomIndex). The order of vertices on every stack will be the same (going in the same direction). */
-	int topIndex = 0;
-	int bottomIndex = nTotalVertices - 1;
+	uint topIndex = 0;
+	uint bottomIndex = nVertices - 1;
 
 	/* Top and bottom vertices. */
 	vertices[topIndex] = { vec3(0, _radius, 0), vec3(0, 1, 0) };
@@ -228,27 +290,27 @@ Sphere::Sphere(vec4 color, int nUpperStacks, int nSlices, float radius) :
 	std::vector<GLuint> vertexOrderVector;
 
 	/* Let's build the triangles for the top and bottom parts which are simply like a pie. */
-	for (int i = 1, iMax = _nSlices; i <= iMax; ++i)
+	for (uint i = 1, iMax = nSlices; i <= iMax; ++i)
 	{
 		/* Top part. Each triangle always starts from the center vertex. */
 		vertexOrderVector.push_back(topIndex);
 		vertexOrderVector.push_back(i);
-		vertexOrderVector.push_back((i == _nSlices) ? 1 : (i + 1));
+		vertexOrderVector.push_back((i == nSlices) ? 1 : (i + 1));
 
 		/* Bottom part. Each triangle always starts from the center vertex. */
 		vertexOrderVector.push_back(bottomIndex);
 		vertexOrderVector.push_back(bottomIndex - i);
-		vertexOrderVector.push_back((i == _nSlices) ? (bottomIndex - 1) : (bottomIndex - i - 1));
+		vertexOrderVector.push_back((i == nSlices) ? (bottomIndex - 1) : (bottomIndex - i - 1));
 	}
 
 	/* Let's build the sphere with two loops. The outter loop is for stacks, the inner loop is for vertices all around
 	a specific stack. We only loop through the upper stacks and reflect the upper vertices on the lower part by
 	inverting the Y coordinates. */
-	for (int currentStack = 0; currentStack <= nUpperStacks; ++currentStack)
+	for (uint currentStack = 0; currentStack <= nUpperStacks; ++currentStack)
 	{
 		/* Phi is the angle used on the Y axis. In a sphere, the top is pi/2, and the bottom is -pi/2. Here we
 		calculate the phi angle for the current stack. */
-		float phi = (glm::pi<float>() / _nStacks) * (nUpperStacks - currentStack);
+		float phi = (glm::pi<float>() / nStacks) * (nUpperStacks - currentStack);
 			//(glm::pi<float>() / 2) - (((glm::pi<float>() / 2) / (nUpperStacks + 1)) * (currentStack + 1));
 
 		float currentY = _radius * glm::sin(phi);
@@ -257,18 +319,18 @@ Sphere::Sphere(vec4 color, int nUpperStacks, int nSlices, float radius) :
 		float currentRadius = _radius * glm::cos(phi);
 
 		/* Indices used in the vertex array. */
-		int upperStackOffset	= ((currentStack) * _nSlices) + 1;
-		int lowerStackOffset = ((_nStacks - currentStack - 1) * _nSlices) + 1;
+		uint upperStackOffset	= ((currentStack) * nSlices) + 1;
+		uint lowerStackOffset = ((nStacks - currentStack - 1) * nSlices) + 1;
 
 		/* For every stack, let's go around the circle and determine the X and Z coordinates. */
-		for (int currentSlice = 0; currentSlice < _nSlices; ++currentSlice)
+		for (uint currentSlice = 0; currentSlice < nSlices; ++currentSlice)
 		{
 			/* Indices of current vertices.  */
 			topIndex = upperStackOffset + currentSlice;
 			bottomIndex = lowerStackOffset + currentSlice;
 
 			/* Theta is used to go around a stack to defined X and Z. */
-			float theta = ((glm::pi<float>() * 2) / _nSlices) * currentSlice;
+			float theta = ((glm::pi<float>() * 2) / nSlices) * currentSlice;
 
 			float currentX = currentRadius * glm::cos(theta);
 			float currentZ = currentRadius * glm::sin(theta);
@@ -278,6 +340,8 @@ Sphere::Sphere(vec4 color, int nUpperStacks, int nSlices, float radius) :
 			vertices[topIndex] = {vec3(currentX, currentY, currentZ), glm::normalize(vec3(currentX, currentY, currentZ))};
 			vertices[bottomIndex] = { vec3(currentX, -currentY, currentZ), glm::normalize(vec3(currentX, -currentY, currentZ)) };
 
+			uint nSlicesMinusOne = nSlices - 1;
+
 			/* Let's build triangles with indices. The center stack won't enter this block because it does not have to
 			create any triangles. The stack right above it and the one right below it will build triangles with its
 			vertices. */
@@ -285,26 +349,28 @@ Sphere::Sphere(vec4 color, int nUpperStacks, int nSlices, float radius) :
 			{
 				/* Upper triangles. */
 				vertexOrderVector.push_back(topIndex);
-				vertexOrderVector.push_back(topIndex + _nSlices); // stack right below, vertex has same theta angle
+				vertexOrderVector.push_back(topIndex + nSlices); // stack right below, vertex has same theta angle
 				vertexOrderVector.push_back(topIndex + 1);
 
 				vertexOrderVector.push_back(topIndex);
-				vertexOrderVector.push_back(topIndex + _nSlices); // stack right below, vertex has same theta angle
-				vertexOrderVector.push_back(topIndex + (_nSlices - 1)); // TODO extract expression cause repeated+++
-
-				
+				vertexOrderVector.push_back(topIndex + nSlices); // stack right below, vertex has same theta angle
+				vertexOrderVector.push_back(topIndex + nSlicesMinusOne); // TODO extract expression cause repeated+++
 
 				/* Lower triangles */
 				vertexOrderVector.push_back(bottomIndex);
-				vertexOrderVector.push_back(bottomIndex - _nSlices); // stack right above, vertex has same theta angle
+				vertexOrderVector.push_back(bottomIndex - nSlices); // stack right above, vertex has same theta angle
 				vertexOrderVector.push_back(bottomIndex - 1);
 
 				vertexOrderVector.push_back(bottomIndex);
-				vertexOrderVector.push_back(bottomIndex - _nSlices); // stack right above, vertex has same theta angle
-				vertexOrderVector.push_back(bottomIndex - (_nSlices - 1));
+				vertexOrderVector.push_back(bottomIndex - nSlices); // stack right above, vertex has same theta angle
+				vertexOrderVector.push_back(bottomIndex - nSlicesMinusOne);
 			}
 		}
 	}
+
+	/* Applies an initial transformation matrix on every vertex. Won't do anything if it is an identity matrix (which
+	is what we get when the parameter is not specified since it's optional). */
+	applyTransformatioMatrix(vertices, nVertices, initialTransformationMatrix);
 
 	// Create Vertex Array Object
 	glGenVertexArrays(1, &_vao);
@@ -317,7 +383,7 @@ Sphere::Sphere(vec4 color, int nUpperStacks, int nSlices, float radius) :
 	glBindBuffer(GL_ARRAY_BUFFER, _vertexBuffer);
 
 	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glBufferData(GL_ARRAY_BUFFER, (sizeof(vec3) * 2) * nTotalVertices, vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, (sizeof(vec3) * 2) * nVertices, vertices, GL_STATIC_DRAW);
 
 	/* Create an element buffer. */
 	GLuint ebo;
@@ -340,6 +406,11 @@ Sphere::Sphere(vec4 color, int nUpperStacks, int nSlices, float radius) :
 	delete[] vertices;
 }
 
+float Sphere::getRadius() const
+{
+	return _radius;
+}
+
 void Sphere::Render()
 {
 	Shape::Render();
@@ -353,50 +424,101 @@ void Sphere::Render()
 	glBindVertexArray(0);
 }
 
+bool Sphere::collisionDetected(const Sphere& sphereShape) const
+{
+		glm::vec3 myCenter = getCenterVector();
+		glm::vec3 itsCenter = sphereShape.getCenterVector();
+
+		glm::vec3 distanceVector = glm::vec3(0, 2, 0); //glm::vec3(itsCenter.x - myCenter.x, itsCenter.y - myCenter.y, itsCenter.z - myCenter.z);
+
+		float distance = sqrt(pow(distanceVector.x, 2) + pow(distanceVector.y, 2) + pow(distanceVector.z, 2)); //distanceVector.length();
+
+		_LOG_INFO() << "collisionDetected my x,y,z =" << myCenter.x << ", " << myCenter.y << ", " << myCenter.z;
+		_LOG_INFO() << "collisionDetected its x,y,z =" << itsCenter.x << ", " << itsCenter.y << ", " << itsCenter.z;
+		_LOG_INFO() << "collisionDetected distance x,y,z =" << distanceVector.x << ", " << distanceVector.y << ", " << distanceVector.z;
+		_LOG_INFO() << "distance=" << distance;
+
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+
+	return false;
+}
+
 #pragma endregion
 
 #pragma region CYLINDER
 
-Cylinder::Cylinder(vec4 color, int nSlices, float height, float radius) :
-	_nSlices(nSlices),
-	_nTrianglesOnSide(nSlices * 2 + 2),
-	_offsetTop(0),
-	_offsetSide(nSlices + 1),
-	_offsetBottom(nSlices * 3 + 3)
+/*Cylinder::Cylinder(vec4 color, uint nSlices, float height, float radius) :
+_nSlices(nSlices),
+_nTrianglesOnSide(nSlices * 2 + 2),
+_offsetTop(0),
+_offsetSide(nSlices + 1),
+_offsetBottom(nSlices * 3 + 3)
+{
+	glm::mat4 dummyMatrix;
+	Cylinder(color, nSlices, height, radius, dummyMatrix);
+}*/
+/* Cylinder constructor. Creates a cylinder with a height of 'height' and a radius of 'radius'. There are 'nSlices'
+vertices used to create a circle. In total, there are four circles, twice the same circle on top, twice the same circle
+on bottom. The reason we duplicate vertices is that for the top, the normals must be pointing upward, for the bottom,
+the normals must be pointing downward, and on the side, they must be pointing to the side. The cylinder will have a
+color defined by 'color' and may use an initial transformation matrix to initially transform every vertex to reduce
+calculations when a frame is rendered. */
+Cylinder::Cylinder(vec4 color, uint nSlices, float height, float radius, const mat4& initialTransformationMatrix) :
+_nSlices(nSlices),
+_nTrianglesOnSide(nSlices * 2 + 2),
+_offsetTop(0),
+_offsetSide(nSlices + 1),
+_offsetBottom(nSlices * 3 + 3)
 {
 	_vertexBuffer = _indexBuffer = BAD_BUFFER;
 
 	_color = color;
 
-	// ...
+	/* There are '_nSlices' vertices on top with an upward normal, same amount on the bottom with downward normal,
+	same amount on top with normal pointing to the side, and same amount on the bottom with normal pointing to the side
+	as well. '+4' is for one center vertex on top, one center vertex on bottom (those two are used to make a
+	triangle fan (GL_TRIANGLE_FAN), and on the side, we have to define the vertex at theta=0 twice to have a triangle
+	strip (GL_TRIANGLE_STRIP) that goes all the way around. If we don't specify them twice, one of the sides is an
+	open hole! */
+	uint nVertices = _nSlices * 4 + 4;
 
-	int nVertices = _nSlices * 4 + 4;
-
-	// !! MEMORY LEAK !!
+	/* Vertex array. Operator 'new' => created on heap, possible memory leak solved below by calling 'delete[]'. */
 	VertexPositionNormal* vertices = new VertexPositionNormal[nVertices];
 
 	float upperHeight = height / 2.0f;
 	float lowerHeight = -upperHeight;
 
-	int indexTop = 0;
-
+	/* First vertex if the top center vertex, last vertex is the bottom center vertex. */
 	vertices[_offsetTop] = { vec3(0, upperHeight, 0), vec3(0, 1, 0) };
 	vertices[nVertices - 1] = { vec3(0, lowerHeight, 0), vec3(0, -1, 0) };
 
-	for (int i = 0; i <= _nSlices; ++i)
+	/* Let's create two circles, one at the top, one at the bottom, and for each, define twice the same vertex position
+	with different normals (one poiting upward/downward, the other pointing on the side). Notice the '<=' which we use
+	to define the vertices at theta=0 twice as explained above. */
+	for (uint i = 0; i <= _nSlices; ++i)
 	{
 		float theta = ((glm::pi<float>() * 2) / _nSlices) * i;
 		float x = radius * glm::cos(theta);
 		float z = radius * glm::sin(theta);
 
-		int offset = _offsetSide + (i * 2);
+		uint offset = _offsetSide + (i * 2);
 
-		vertices[_offsetTop + i]    = { vec3(x, upperHeight, z), vec3(0, 1, 0) };
-		vertices[offset]            = { vec3(x, upperHeight, z), glm::normalize(vec3(x, 0, z)) };
-		vertices[offset + 1]        = { vec3(x, lowerHeight, z), glm::normalize(vec3(x, 0, z)) };
+		/* Top circle, upward normal */
+		vertices[_offsetTop + i] = { vec3(x, upperHeight, z), vec3(0, 1, 0) };
+
+		/* Top circle, side-pointing normal */
+		vertices[offset] = { vec3(x, upperHeight, z), glm::normalize(vec3(x, 0, z)) };
+
+		/* Bottom circle, side-pointing normal */
+		vertices[offset + 1] = { vec3(x, lowerHeight, z), glm::normalize(vec3(x, 0, z)) };
+
+		/* Bottom circle, downward normal */
 		vertices[_offsetBottom + i] = { vec3(x, lowerHeight, z), vec3(0, -1, 0) };
 	}
 
+	/* Applies an initial transformation matrix on every vertex. Won't do anything if it is an identity matrix (which
+	is what we get when the parameter is not specified since it's optional). */
+	applyTransformatioMatrix(vertices, nVertices, initialTransformationMatrix);
 
 	// Create Vertex Array Object
 	glGenVertexArrays(1, &_vao);
@@ -430,8 +552,14 @@ void Cylinder::Render()
 
 	glBindVertexArray(_vao);
 
+	/* Top circle is displayed using a "triangle fan", first vertex is the center, then all other vertices connect with
+	that vertex. */
 	glDrawArrays(GL_TRIANGLE_FAN, _offsetTop, _nSlices);
+
+	/* The side is displayed using a triangle fan using triangles alternating between top and bottom. */
 	glDrawArrays(GL_TRIANGLE_STRIP, _offsetSide, _nTrianglesOnSide);
+
+	/* Bottom circle is displayed like top circle. */
 	glDrawArrays(GL_TRIANGLE_FAN, _offsetBottom, _nSlices);
 
 	glBindVertexArray(0);
