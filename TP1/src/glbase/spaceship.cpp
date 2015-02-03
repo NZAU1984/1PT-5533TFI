@@ -9,14 +9,14 @@ glm::mat4 rotation90degAroundY(glm::rotate(glm::mat4(), glm::pi<float>(), vec3(0
 glm::mat4 connectorShear
 {
 	1, 0, 0, 0,
-	-0.5f, 1, -0.5f, 0,
+	-0.5f, 1, 0.5f, 0,
 	0, 0, 1, 0,
 	0, 0, 0, 1
 };
 
 glm::mat4 finShear
 {
-	1, 0, 0.5f, 0,
+	1, 0, -0.5f, 0,
 	0, 1, 0, 0,
 	0, 0, 1, 0,
 	0, 0, 0, 1
@@ -48,16 +48,16 @@ glm::mat4 flipZ
 
 // before modification
 
-glm::mat4 leftConnectorTransformationMatrix = connectorShear * glm::translate(glm::scale(glm::mat4(), vec3(0.3f, 2, 1)), vec3(0.75f, -0.60f, -0.5f));//glm::translate(glm::scale(glm::rotate(glm::mat4(), glm::pi<float>() / 2, vec3(1, 0, 0)), vec3(0.3f, 1, 2)), vec3(0, 0, 1));
+glm::mat4 leftConnectorTransformationMatrix = connectorShear * glm::translate(glm::scale(glm::mat4(), vec3(0.3f, 2, 1)), vec3(0.75f, -0.60f, 0.125f));//glm::translate(glm::scale(glm::rotate(glm::mat4(), glm::pi<float>() / 2, vec3(1, 0, 0)), vec3(0.3f, 1, 2)), vec3(0, 0, 1));
 
-glm::mat4 leftMotorTransformationMatrix = glm::translate(glm::mat4(), vec3(0.25f + 0.9f, -1.8f, 1.0f)) * rotation90degAroundX;
+glm::mat4 leftMotorTransformationMatrix = glm::translate(glm::mat4(), vec3(1.25f, -1.8f, -1.0f)) * rotation90degAroundX;
 
-glm::mat4 leftMotorOuterFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, 1.9f)) * leftMotorTransformationMatrix * glm::scale(glm::mat4(), vec3(0.7f, 0.7f, 0.7f));
+glm::mat4 leftMotorOuterFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, -1.9f)) * leftMotorTransformationMatrix * glm::scale(glm::mat4(), vec3(0.7f, 0.7f, 0.7f));
 //glm::translate(glm::mat4(), vec3(0.9f, -1.8f, 2.9f)) * rotation90degAroundX * glm::scale(glm::mat4(), vec3(0.7f, 0.7f, 0.7f));
 
-glm::mat4 leftMotorInnerFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, 1.9f)) * leftMotorTransformationMatrix * glm::scale(glm::mat4(), vec3(0.3f, 0.7f, 0.3f)); //leftMotorOuterFlameTransformationMatrix * glm::scale(glm::mat4(), vec3(0.5f, 0.5f, 0.5f)); // glm::translate(glm::mat4(), vec3(0.9f, -1.8f, 2.9f)) * rotation90degAroundX * glm::scale(glm::mat4(), vec3(0.3f, 0.7f, 0.3f));
+glm::mat4 leftMotorInnerFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, -1.9f)) * leftMotorTransformationMatrix * glm::scale(glm::mat4(), vec3(0.3f, 0.7f, 0.3f)); //leftMotorOuterFlameTransformationMatrix * glm::scale(glm::mat4(), vec3(0.5f, 0.5f, 0.5f)); // glm::translate(glm::mat4(), vec3(0.9f, -1.8f, 2.9f)) * rotation90degAroundX * glm::scale(glm::mat4(), vec3(0.3f, 0.7f, 0.3f));
 
-glm::mat4 leftFinTransformationMatrix = finShear * glm::translate(glm::mat4(), vec3(0.75f, 0, -2.4f)) * glm::scale(glm::mat4(), vec3(1.25f, 0.5f, 1));
+glm::mat4 leftFinTransformationMatrix = finShear * glm::translate(glm::mat4(), vec3(0.75f, 0, 2.55f)) * glm::scale(glm::mat4(), vec3(1.25f, 0.5f, 1));
 //glm::translate(glm::scale(glm::mat4(), vec3(0.3f, 2, 1)), vec3(0.75f, -0.60f, -0.5f));
 
 Spaceship::Spaceship() :
@@ -78,7 +78,7 @@ rightMotorInnerFlame(vec4(1, 0, 0, 1.0f), 100, 0.5f, 0.3f, flipX * leftMotorInne
 
 rightMotor(vec4(0, 0, 1, 1), 100, 3.5f, 0.3f, flipX * leftMotorTransformationMatrix),
 
-trunk(vec4(0, 1, 1, 1), 100, 3, 0.5f, glm::translate(glm::mat4(), vec3(0, 0, -1.35f)) * rotation90degAroundX * glm::scale(glm::mat4(), vec3(0.3f, 1, 1))),
+trunk(vec4(0, 1, 1, 1), 100, 3, 0.5f, glm::translate(glm::mat4(), vec3(0, 0, 1.5f)) * rotation90degAroundX * glm::scale(glm::mat4(), vec3(0.3f, 1, 1))),
 
 leftFin(vec4(1, 1, 0, 1), leftFinTransformationMatrix),
 rightFin(vec4(1, 1, 0, 1), flipX * leftFinTransformationMatrix)
