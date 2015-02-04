@@ -38,8 +38,8 @@ CoreTP1::CoreTP1() :
 	 * +y is pointing towards top
 	 * +z is pointing towards background
 	 * */
-	//_viewMatrix = glm::lookAt(glm::vec3(0, 3, -6), glm::vec3(0, 0, 0), glm::vec3(0, 1, 1));
-	_viewMatrix = glm::lookAt(glm::vec3(0, 0, -6), glm::vec3(0, 0, 0), glm::vec3(0, 1, 1));
+	_viewMatrix = glm::lookAt(glm::vec3(0, 3, -6), glm::vec3(0, 0, 0), glm::vec3(0, 1, 1));
+	//_viewMatrix = glm::lookAt(glm::vec3(0, 0, -6), glm::vec3(0, 0, 0), glm::vec3(0, 1, 1));
 
 	//b.AddChild(&b2);
 	//b.AddChild(&sphere);

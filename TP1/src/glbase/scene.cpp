@@ -70,21 +70,38 @@ void Shape::Render()
 
 void Shape::applyTransformatioMatrix(VertexPositionNormal* vertices, uint nVertices, const glm::mat4& transformationMatrix)
 {
-	_LOG_INFO() << "???";
 	if (transformationMatrix != glm::mat4())
-	{
-		_LOG_INFO() << "Shape::applyTransMatrix() :: NOT IDENTITY";
-		
+	{	
+		float minX = vertices[0].position.x, 
+			maxX = vertices[0].position.x,
+			minY = vertices[0].position.y,
+			maxY = vertices[0].position.y,
+			minZ = vertices[0].position.z,
+			maxZ = vertices[0].position.z;
+
 		for (uint i = 0; i < nVertices; ++i)
 		{
 			VertexPositionNormal* currentVertex = &vertices[i];
 			vec4 currentVertexPosition = vec4((*currentVertex).position, 1);
-			vec4 currentVertexNormal = vec4((*currentVertex).normal, 1);
+			vec4 currentVertexNormal = vec4((*currentVertex).normal, 1);			
 			(*currentVertex).position = vec3(transformationMatrix * currentVertexPosition);
 			(*currentVertex).normal = vec3(transformationMatrix * currentVertexNormal);
+
+			//_LOG_INFO() << "From " << currentVertexPosition.x << ", " << currentVertexPosition.y << ", " << currentVertexPosition.z
+			//	<< "\n......................................to " << (*currentVertex).position.x << ", " << (*currentVertex).position.y << ", " << (*currentVertex).position.z;
+		
+			minX = min(minX, (*currentVertex).position.x);
+			maxX = max(maxX, (*currentVertex).position.x);
+
+			minY = min(minY, (*currentVertex).position.y);
+			maxY = max(maxY, (*currentVertex).position.y);
+
+			minZ = min(minZ, (*currentVertex).position.z);
+			maxZ = max(maxZ, (*currentVertex).position.z);
 		}
+
+		_LOG_INFO() << "minX=" << minX << ", maxX=" << maxX << ", minY=" << minY << ", maxY=" << maxY << ", minZ=" << minZ << ", maxZ=" << maxZ;
 	}
-		_LOG_INFO() << "End...";
 }
 
 glm::vec3 Shape::getCenterVector() const
