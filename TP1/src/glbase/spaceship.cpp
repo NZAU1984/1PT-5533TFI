@@ -3,10 +3,8 @@
 #include "glm/gtx/transform2.hpp"
 
 float connectorShearXfractionOfY = -0.5f;
-
 float connectorShearZfractionOfY = 0.5f;
-
-float finShearZFractionOfX = -0.5f;
+float finShearZFractionOfX       = -0.5f;
 
 glm::mat4 rotation90degAroundX(glm::rotate(glm::mat4(), glm::pi<float>() / 2, vec3(1, 0, 0)));
 
@@ -54,23 +52,23 @@ glm::mat4 flipZ
 
 glm::vec4 mainBodyColor = vec4(1.0f, 0, 0, 1.0f);
 
-float mainBodyWidth = 1;
+float mainBodyWidth  = 1;
 float mainBodyHeight = 0.5f;
-float mainBodyDepth = 3;
+float mainBodyDepth  = 3;
 
 glm::vec4 connectorColor = vec4(0, 1, 0, 1.0f);
 
-float connectorWidth = 0.3f;
+float connectorWidth  = 0.3f;
 float connectorHeight = 2;
-float connectorDepth = 1;
+float connectorDepth  = 1;
 
-float connectorWidthAfterShear = connectorWidth + abs(connectorShearXfractionOfY) * connectorHeight;
+float connectorWidthAfterShear  = connectorWidth + abs(connectorShearXfractionOfY) * connectorHeight;
 float connectorHeightAfterShear = connectorHeight;
-float connectorDepthAfterShear = connectorDepth + abs(connectorShearZfractionOfY) * connectorHeight;
+float connectorDepthAfterShear  = connectorDepth + abs(connectorShearZfractionOfY) * connectorHeight;
 
-float connectorXTranslation = (connectorWidthAfterShear / 2) - connectorWidth + (mainBodyWidth / 2);
-float connectorYTranslation = -((connectorHeightAfterShear + mainBodyHeight) / 2);
-float connectorZTranslation = (connectorDepthAfterShear - mainBodyDepth) / 2;
+float connectorTranslationX = (connectorWidthAfterShear / 2) - connectorWidth + (mainBodyWidth / 2);
+float connectorTranslationY = -((connectorHeightAfterShear + mainBodyHeight) / 2);
+float connectorTranslationZ = (connectorDepthAfterShear - mainBodyDepth) / 2;
 
 glm::vec4 motorColor = vec4(0, 0, 1, 1);
 
@@ -79,20 +77,20 @@ float motorRadius = 0.3f;
 
 float connectorSpaceVisibleUnderMotor = 0.2f;
 
-float motorXTranslation = connectorXTranslation + connectorWidthAfterShear / 2 - motorRadius / 2
+float motorTranslationX = connectorTranslationX + connectorWidthAfterShear / 2 - motorRadius / 2
 	- connectorSpaceVisibleUnderMotor;
-float motorYTranslation = connectorYTranslation - connectorHeightAfterShear / 2 + motorRadius / 2
+float motorTranslationY = connectorTranslationY - connectorHeightAfterShear / 2 + motorRadius / 2
 	+ connectorSpaceVisibleUnderMotor;
-float motorZTranslation = -1.0f;
+float motorTranslationZ = -1.0f;
 
 glm::vec4 outerMotorFlameColor = vec4(1, 0, 0, 0.5f);
 
 float outerMotorFlameHeight = 0.4f; //0.5f * 0.7f;
 float outerMotorFlameRadius = motorRadius * 0.7f; //;motorRadius * 0.3f;
 
-float outerMotorFlameXTranslation = 0;
-float outerMotorFlameYTranslation = 0;
-float outerMotorFlameZTranslation = -((motorHeight + outerMotorFlameHeight) / 2) + 0.01f; // '+ 0.01f' to prevent image from flickering...
+float outerMotorFlameTranslationX = 0;
+float outerMotorFlameTranslationY = 0;
+float outerMotorFlameTranslationZ = -((motorHeight + outerMotorFlameHeight) / 2) + 0.01f; // '+ 0.01f' to prevent image from flickering...
 
 glm::vec4 innerMotorFlameColor = vec4(1, 0, 0, 1.0f);
 
@@ -101,9 +99,9 @@ float innerMotorFlameRadius = motorRadius * 0.3f;
 
 glm::vec4 trunkColor = vec4(0, 1, 1, 1);
 
-float trunkWidth = 1;
+float trunkWidth  = 1;
 float trunkHeight = 1;
-float trunkDepth = 3;
+float trunkDepth  = 3;
 
 float trunkRadius = 0.5f;
 
@@ -111,48 +109,48 @@ float trunkScaleX = 0.3f;
 float trunkScaleY = 1;
 float trunkScaleZ = 1;
 
-float trunkXTranslation = 0;
-float trunkYTranslation = 0;
-float trunkZTranslation = trunkDepth / 2;
+float trunkTranslationX = 0;
+float trunkTranslationY = 0;
+float trunkTranslationZ = trunkDepth / 2;
 
-glm::vec4 finColor = vec4(1, 1, 0, 1);
+glm::vec4 finColor = vec4(1, 1, 0, 1.0f);
 
-float finWidth = 1.25f;
+float finWidth  = 1.25f;
 float finHeight = 0.5f;
-float finDepth = 1;
+float finDepth  = 1;
 
-float finWidthAfterShear = finWidth;
+float finWidthAfterShear  = finWidth;
 float finHeightAfterShear = finHeight;
-float finDepthAfterShear = finDepth + abs(finShearZFractionOfX) * finWidth;
+float finDepthAfterShear  = finDepth + abs(finShearZFractionOfX) * finWidth;
 
-float finXTranslation = finWidthAfterShear / 2;
-float finYTranslation = 0;
-float finZTranslation = trunkZTranslation * 2 - finDepthAfterShear / 2 + 0.2f;
+float finTranslationX = finWidthAfterShear / 2;
+float finTranslationY = 0;
+float finTranslationZ = trunkTranslationZ * 2 - finDepthAfterShear / 2 + 0.2f;
 
 glm::mat4 mainBodyTransformationMatrix = glm::scale(glm::mat4(), vec3(mainBodyWidth, mainBodyHeight, mainBodyDepth));
 
 glm::mat4 leftConnectorTransformationMatrix = glm::translate(glm::mat4(),
-	vec3(connectorXTranslation, connectorYTranslation, connectorZTranslation))
+	vec3(connectorTranslationX, connectorTranslationY, connectorTranslationZ))
 	* connectorShear 
 	* glm::scale(glm::mat4(), vec3(connectorWidth, connectorHeight, connectorDepth));
 
 glm::mat4 leftMotorTransformationMatrix = glm::translate(glm::mat4(), 
-	vec3(motorXTranslation, motorYTranslation, motorZTranslation))
+	vec3(motorTranslationX, motorTranslationY, motorTranslationZ))
 	* rotation90degAroundX;
 
 glm::mat4 leftMotorOuterFlameTransformationMatrix = glm::translate(glm::mat4(),
-	vec3(outerMotorFlameXTranslation, outerMotorFlameYTranslation, outerMotorFlameZTranslation))
+	vec3(outerMotorFlameTranslationX, outerMotorFlameTranslationY, outerMotorFlameTranslationZ))
 	* leftMotorTransformationMatrix;
 
 glm::mat4 leftMotorInnerFlameTransformationMatrix = leftMotorOuterFlameTransformationMatrix;
 
 glm::mat4 trunkTransformationMatrix = glm::translate(glm::mat4(),
-	vec3(trunkXTranslation, trunkYTranslation, trunkZTranslation))
+	vec3(trunkTranslationX, trunkTranslationY, trunkTranslationZ))
 	* glm::scale(glm::mat4(), vec3(trunkScaleX, trunkScaleY, trunkScaleZ))
 	* rotation90degAroundX;
 
 glm::mat4 leftFinTransformationMatrix = glm::translate(glm::mat4(),
-	vec3(finXTranslation, finYTranslation, finZTranslation))
+	vec3(finTranslationX, finTranslationY, finTranslationZ))
 	* finShear
 	* glm::scale(glm::mat4(), vec3(finWidth, finHeight, finDepth));
 
@@ -202,14 +200,22 @@ Spaceship::Spaceship() :
 
 void Spaceship::render(double dt)
 {
-	mainBody.SetTransform(glm::rotate(
+	/*mainBody.SetTransform(glm::rotate(
 		glm::scale(
 			glm::translate(glm::mat4(), vec3(0, -2.5f, 0)), 
 			vec3(0.2f, 0.2f, 0.2f)
 		),
-		0.0f, vec3(1, 0, 0)));
-	//mainBody.SetTransform(glm::scale(glm::mat4(), vec3(0.5f, 0.5f, 0.5f)));	 // -glm::pi<float>()/7
+		0.0f, vec3(1, 0, 0)));*/
+	animateFlames();
 
+	leftMotorOuterFlame.SetTransform(_leftMotorOuterFlameTransformationMatrix);
+	rightMotorOuterFlame.SetTransform(_rightMotorOuterFlameTransformationMatrix);
+	leftMotorInnerFlame.SetTransform(_leftMotorInnerFlameTransformationMatrix);
+	rightMotorInnerFlame.SetTransform(_rightMotorInnerFlameTransformationMatrix);
+
+	mainBody.SetTransform(glm::scale(glm::mat4(), vec3(0.3f, 0.3f, 0.3f)));
+	//mainBody.SetTransform(glm::scale(glm::rotate(glm::mat4(), angle, vec3(0,1,0)), vec3(0.5f, 0.5f, 0.5f)));	 // -glm::pi<float>()/7
+	//mainBody.SetTransform(glm::rotate(glm::mat4(), angle, vec3(0,1,0)));
 	leftMotor.Render();
 	rightMotor.Render();
 
@@ -230,5 +236,28 @@ void Spaceship::render(double dt)
 	rightMotorInnerFlame.Render();
 
 	angle += (float)dt * 2 * glm::pi<float>() * 0.1f;
+}
+
+void Spaceship::animateFlames()
+{
+	_direction = FORWARD;
+
+	float leftOuterFlameDepthRatio = (RIGHT == _direction || FORWARD == _direction ? 2.5f : 0) + randomFloat(1.0f, 2.0f);
+	float rightOuterFlameDepthRatio = (LEFT == _direction || FORWARD == _direction ? 2.5f : 0) + randomFloat(1.0f, 2.0f);
+	
+	float leftInnerFlameDepthRatio = leftOuterFlameDepthRatio + randomFloat(0, 0.5f);
+	float rightInnerFlameDepthRatio = rightOuterFlameDepthRatio + randomFloat(0, 0.5f);
+
+	//-((motorHeight + outerMotorFlameHeight) / 2) + 0.01f;
+	
+	// 1.0f => 0
+	// 1.5f => = 1.37500
+	// 2.0f => 2.75f
+
+	_leftMotorOuterFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, ((leftOuterFlameDepthRatio - 1) * 2.75f))) * glm::scale(glm::mat4(), vec3(1, 1, leftOuterFlameDepthRatio));
+	_rightMotorOuterFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, ((rightOuterFlameDepthRatio - 1) * 2.75f))) * glm::scale(glm::mat4(), vec3(1, 1, rightOuterFlameDepthRatio));
+	
+	_leftMotorInnerFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, ((leftInnerFlameDepthRatio - 1) * 2.75f))) * glm::scale(glm::mat4(), vec3(1, 1, leftInnerFlameDepthRatio));
+	_rightMotorInnerFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, ((rightInnerFlameDepthRatio - 1) * 2.75f))) * glm::scale(glm::mat4(), vec3(1, 1, rightInnerFlameDepthRatio));
 }
 

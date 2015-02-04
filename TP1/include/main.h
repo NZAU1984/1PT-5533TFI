@@ -74,3 +74,5 @@ namespace std
 void onGLFWError(int code, const char* error);
 void debugGLError();
 GLuint loadShader(const char* filename, GLuint shader_type);
+
+float randomFloat(float minValue, float maxValue);

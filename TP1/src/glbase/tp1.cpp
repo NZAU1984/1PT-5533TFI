@@ -38,7 +38,9 @@ CoreTP1::CoreTP1() :
 	 * +y is pointing towards top
 	 * +z is pointing towards background
 	 * */
-	_viewMatrix = glm::lookAt(glm::vec3(0, 3, -6), glm::vec3(0, 0, 0), glm::vec3(0, 1, 1));
+	// default = 0, 3, -6 ... 0,0,0 .. 0,1,0
+	_viewMatrix = glm::lookAt(glm::vec3(0, 3, -6), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	//_viewMatrix = glm::lookAt(glm::vec3(0, 13*2, -14*2), glm::vec3(0, 0, 3*6), glm::vec3(0, 1, 0));
 	//_viewMatrix = glm::lookAt(glm::vec3(0, 0, -6), glm::vec3(0, 0, 0), glm::vec3(0, 1, 1));
 
 	//b.AddChild(&b2);
@@ -53,6 +55,15 @@ CoreTP1::CoreTP1() :
 
 void CoreTP1::Render(double dt)
 {
+	/*
+	Screen limits (when lookAt = 0,3,-6 ; 0,0,0 ; 0,1,0)
+	For y = 0, z = 0 : x = -2.3 .. 2.3
+	For x = 0, z = 0 : y = -3.9 .. 2.55
+
+	For y = 0, z = 1 : x = -2.6 .. 2.6
+	For x = 0, z = 1 : y = -5.05 .. 2.515
+
+	*/
 	centerSphere.Render();
 
 	spaceship.render(dt);
