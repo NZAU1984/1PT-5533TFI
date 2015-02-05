@@ -39,7 +39,7 @@ CoreTP1::CoreTP1() :
 	 * +z is pointing towards background
 	 * */
 	// default = 0, 3, -6 ... 0,0,0 .. 0,1,0
-	_viewMatrix = glm::lookAt(glm::vec3(0, 3, -6), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	_viewMatrix = glm::lookAt(glm::vec3(0, 30, -6), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	//_viewMatrix = glm::lookAt(glm::vec3(0, 13*2, -14*2), glm::vec3(0, 0, 3*6), glm::vec3(0, 1, 0));
 	//_viewMatrix = glm::lookAt(glm::vec3(0, 0, -6), glm::vec3(0, 0, 0), glm::vec3(0, 1, 1));
 

@@ -70,7 +70,7 @@ float connectorTranslationX = (connectorWidthAfterShear / 2) - connectorWidth + 
 float connectorTranslationY = -((connectorHeightAfterShear + mainBodyHeight) / 2);
 float connectorTranslationZ = (connectorDepthAfterShear - mainBodyDepth) / 2;
 
-glm::vec4 motorColor = vec4(0, 0, 1, 1);
+glm::vec4 motorColor = vec4(0, 1, 1, 1);
 
 float motorHeight = 3.5f;
 float motorRadius = 0.3f;
@@ -133,6 +133,8 @@ glm::mat4 leftConnectorTransformationMatrix = glm::translate(glm::mat4(),
 	vec3(connectorTranslationX, connectorTranslationY, connectorTranslationZ))
 	* connectorShear 
 	* glm::scale(glm::mat4(), vec3(connectorWidth, connectorHeight, connectorDepth));
+
+glm::mat4 leftMotorTransformationMatrix_part1 = rotation90degAroundX;
 
 glm::mat4 leftMotorTransformationMatrix = glm::translate(glm::mat4(), 
 	vec3(motorTranslationX, motorTranslationY, motorTranslationZ))
@@ -207,15 +209,16 @@ void Spaceship::render(double dt)
 		),
 		0.0f, vec3(1, 0, 0)));*/
 	animateFlames();
-
+//	leftMotor.SetTransform(leftMotorTransformationMatrix);
 	leftMotorOuterFlame.SetTransform(_leftMotorOuterFlameTransformationMatrix);
 	rightMotorOuterFlame.SetTransform(_rightMotorOuterFlameTransformationMatrix);
 	leftMotorInnerFlame.SetTransform(_leftMotorInnerFlameTransformationMatrix);
 	rightMotorInnerFlame.SetTransform(_rightMotorInnerFlameTransformationMatrix);
 
-	mainBody.SetTransform(glm::scale(glm::mat4(), vec3(0.3f, 0.3f, 0.3f)));
+	//mainBody.SetTransform(glm::scale(glm::mat4(), vec3(0.3f, 0.3f, 0.3f)));
 	//mainBody.SetTransform(glm::scale(glm::rotate(glm::mat4(), angle, vec3(0,1,0)), vec3(0.5f, 0.5f, 0.5f)));	 // -glm::pi<float>()/7
 	//mainBody.SetTransform(glm::rotate(glm::mat4(), angle, vec3(0,1,0)));
+	
 	leftMotor.Render();
 	rightMotor.Render();
 
@@ -240,7 +243,7 @@ void Spaceship::render(double dt)
 
 void Spaceship::animateFlames()
 {
-	_direction = FORWARD;
+	_direction = LEFT;
 
 	float leftOuterFlameDepthRatio = (RIGHT == _direction || FORWARD == _direction ? 2.5f : 0) + randomFloat(1.0f, 2.0f);
 	float rightOuterFlameDepthRatio = (LEFT == _direction || FORWARD == _direction ? 2.5f : 0) + randomFloat(1.0f, 2.0f);
