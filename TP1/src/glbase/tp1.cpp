@@ -39,7 +39,7 @@ CoreTP1::CoreTP1() :
 	 * +z is pointing towards background
 	 * */
 	// default = 0, 3, -6 ... 0,0,0 .. 0,1,0
-	_viewMatrix = glm::lookAt(glm::vec3(0, 30, -6), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	_viewMatrix = glm::lookAt(glm::vec3(0, 45, -25), glm::vec3(0, 0, 20), glm::vec3(0, 1, 0));
 	//_viewMatrix = glm::lookAt(glm::vec3(0, 13*2, -14*2), glm::vec3(0, 0, 3*6), glm::vec3(0, 1, 0));
 	//_viewMatrix = glm::lookAt(glm::vec3(0, 0, -6), glm::vec3(0, 0, 0), glm::vec3(0, 1, 1));
 
@@ -116,4 +116,57 @@ CoreTP1::~CoreTP1()
 void CoreTP1::OnKeyW(bool down)
 {
 	_LOG_INFO() << "W, down=" << down;
+
+	if (down)
+	{
+		spaceship.goForward();
+	}
+	else
+	{
+		spaceship.stopGoingForward();
+	}
 }
+
+void CoreTP1::OnKeyA(bool down)
+{
+	_LOG_INFO() << "A, down=" << down;
+
+	if (down)
+	{
+		spaceship.goLeft();
+	}
+	else
+	{
+		spaceship.stopGoingLeft();
+	}
+}
+
+void CoreTP1::OnKeyS(bool down)
+{
+	_LOG_INFO() << "S, down=" << down;
+
+	if (down)
+	{
+		spaceship.goBackward();
+	}
+	else
+	{
+		spaceship.stopGoingBackward();
+	}
+}
+
+void CoreTP1::OnKeyD(bool down)
+{
+	_LOG_INFO() << "D, down=" << down;
+
+	if (down)
+	{
+		spaceship.goRight();
+	}
+	else
+	{
+		spaceship.stopGoingRight();
+	}
+}
+
+

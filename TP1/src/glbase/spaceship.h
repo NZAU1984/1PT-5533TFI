@@ -12,10 +12,17 @@ class Spaceship
 public:
 	Spaceship();
 
-
-	
-
 	void render(double dt);
+
+	void goForward();
+	void goLeft();
+	void goRight();
+	void goBackward();
+
+	void stopGoingForward();
+	void stopGoingLeft();
+	void stopGoingRight();
+	void stopGoingBackward();
 
 protected:
 	// TODO add underscores...
@@ -44,9 +51,23 @@ protected:
 	glm::mat4 _leftMotorInnerFlameTransformationMatrix;
 	glm::mat4 _rightMotorInnerFlameTransformationMatrix;
 
-	enum _directionEnum {NO_CHANGE, LEFT, RIGHT, FORWARD, BACKWARD};
+	uint DIRECTION_NO_CHANGE = 0;
+	uint DIRECTION_FORWARD = 1 << 0;
+	uint DIRECTION_LEFT = 1 << 1;
+	uint DIRECTION_RIGHT = 1 << 2;
+	uint DIRECTION_BACKWARD = 1 << 3;
 
-	_directionEnum _direction = NO_CHANGE;
+	uint _direction = DIRECTION_NO_CHANGE;
+
+	float _deltaZperSecond = 25;
+
+	float _positionZ = 0;
+
+	float _deltaXperSecond = 15;
+
+	float _positionX = 0;
 
 	void animateFlames();
+
+	void calculatePosition(double dt);
 };

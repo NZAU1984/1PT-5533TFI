@@ -13,6 +13,9 @@ public:
 protected:
 	virtual void Render(double dt) override;
 	virtual void OnKeyW(bool down) override;
+	virtual void OnKeyA(bool down) override;
+	virtual void OnKeyS(bool down) override;
+	virtual void OnKeyD(bool down) override;
 
 protected:
 	/*Box mainBox, leftConnector, rightConnector;// ,// b2;

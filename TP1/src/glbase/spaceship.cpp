@@ -202,6 +202,7 @@ Spaceship::Spaceship() :
 
 void Spaceship::render(double dt)
 {
+
 	/*mainBody.SetTransform(glm::rotate(
 		glm::scale(
 			glm::translate(glm::mat4(), vec3(0, -2.5f, 0)), 
@@ -209,6 +210,7 @@ void Spaceship::render(double dt)
 		),
 		0.0f, vec3(1, 0, 0)));*/
 	animateFlames();
+	calculatePosition(dt);
 //	leftMotor.SetTransform(leftMotorTransformationMatrix);
 	leftMotorOuterFlame.SetTransform(_leftMotorOuterFlameTransformationMatrix);
 	rightMotorOuterFlame.SetTransform(_rightMotorOuterFlameTransformationMatrix);
@@ -219,6 +221,10 @@ void Spaceship::render(double dt)
 	//mainBody.SetTransform(glm::scale(glm::rotate(glm::mat4(), angle, vec3(0,1,0)), vec3(0.5f, 0.5f, 0.5f)));	 // -glm::pi<float>()/7
 	//mainBody.SetTransform(glm::rotate(glm::mat4(), angle, vec3(0,1,0)));
 	
+	//_positionZ += 0.01f;
+
+	mainBody.SetTransform(glm::translate(glm::mat4(), vec3(_positionX, 0, _positionZ)));
+
 	leftMotor.Render();
 	rightMotor.Render();
 
@@ -243,24 +249,157 @@ void Spaceship::render(double dt)
 
 void Spaceship::animateFlames()
 {
-	_direction = LEFT;
-
-	float leftOuterFlameDepthRatio = (RIGHT == _direction || FORWARD == _direction ? 2.5f : 0) + randomFloat(1.0f, 2.0f);
-	float rightOuterFlameDepthRatio = (LEFT == _direction || FORWARD == _direction ? 2.5f : 0) + randomFloat(1.0f, 2.0f);
+	float leftOuterFlameDepthRatio = ((_direction & DIRECTION_RIGHT) != 0 || (_direction & DIRECTION_FORWARD) != 0 ? 2.5f : 0) + randomFloat(1.0f, 2.0f);
+	float rightOuterFlameDepthRatio = ((_direction & DIRECTION_LEFT) != 0 || (_direction & DIRECTION_FORWARD) != 0 ? 2.5f : 0) + randomFloat(1.0f, 2.0f);
 	
 	float leftInnerFlameDepthRatio = leftOuterFlameDepthRatio + randomFloat(0, 0.5f);
 	float rightInnerFlameDepthRatio = rightOuterFlameDepthRatio + randomFloat(0, 0.5f);
-
-	//-((motorHeight + outerMotorFlameHeight) / 2) + 0.01f;
-	
-	// 1.0f => 0
-	// 1.5f => = 1.37500
-	// 2.0f => 2.75f
 
 	_leftMotorOuterFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, ((leftOuterFlameDepthRatio - 1) * 2.75f))) * glm::scale(glm::mat4(), vec3(1, 1, leftOuterFlameDepthRatio));
 	_rightMotorOuterFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, ((rightOuterFlameDepthRatio - 1) * 2.75f))) * glm::scale(glm::mat4(), vec3(1, 1, rightOuterFlameDepthRatio));
 	
 	_leftMotorInnerFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, ((leftInnerFlameDepthRatio - 1) * 2.75f))) * glm::scale(glm::mat4(), vec3(1, 1, leftInnerFlameDepthRatio));
 	_rightMotorInnerFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, ((rightInnerFlameDepthRatio - 1) * 2.75f))) * glm::scale(glm::mat4(), vec3(1, 1, rightInnerFlameDepthRatio));
+}
+
+/* Calculates the Z and Z positions of the spaceship. The direction is represented by different constants which all
+have a '1' at a different position (bit shift), and we can combine those constants combine directions, for example
+going FORWARD and going LEFT at the same time. We prevent being able to go FORWARD and BACKWARD at the same time. */
+void Spaceship::calculatePosition(double dt)
+{
+	if (DIRECTION_NO_CHANGE == _direction)
+	{
+		/* Going nowhere */
+
+		return;
+	}
+
+	if ((_direction & DIRECTION_FORWARD) != 0)
+	{
+		/* Going forward */
+		_positionZ += _deltaZperSecond * dt;
+	}
+	else if ((_direction & DIRECTION_BACKWARD) != 0)
+	{
+		/* Going backward */
+		_positionZ -= _deltaZperSecond * dt;
+	}
+
+	if ((_direction & DIRECTION_LEFT) != 0)
+	{
+		/* Going left */
+		_positionX += _deltaXperSecond * dt;
+	}
+	else if ((_direction & DIRECTION_RIGHT) != 0)
+	{
+		/* Going right */
+		_positionX -= _deltaXperSecond * dt;
+	}
+
+	/* Below, bound checking */
+	if (_positionZ < 0)
+	{
+		/* Reached bottom limit */
+
+		_positionZ = 0;
+		
+		stopGoingBackward();
+	}
+	else if (_positionZ > 75)
+	{
+		/* Reached top limit */
+
+		_positionZ = 75;
+		
+		stopGoingForward();
+	}
+
+	if (_positionX < -15)
+	{
+		/* Reached right limit */
+
+		_positionX = -15;
+		
+		stopGoingRight();
+	}
+	else if(_positionX > 15)
+	{
+		/* Reached left limit */
+
+		_positionX = 15;
+
+		stopGoingLeft();
+	}
+}
+
+/* Below are methods which are called with certain keys (for example 'W' for 'FORWARD') to controle the spaceship
+direction. */
+
+void Spaceship::goForward()
+{
+	/* If was going backward, stop that, let's go forward. */
+	if ((_direction & DIRECTION_BACKWARD) != 0)
+	{
+		stopGoingBackward();
+	}
+
+	_direction |= DIRECTION_FORWARD;
+}
+
+void Spaceship::stopGoingForward()
+{
+	/* Setting the '1' in the constant equal to zero in '_direction' */
+	_direction = _direction & ~DIRECTION_FORWARD;
+}
+
+void Spaceship::goLeft()
+{
+	/* If going right, stop going right, now going left. */
+	if ((_direction & DIRECTION_RIGHT) != 0)
+	{
+		stopGoingRight();
+	}
+
+	_direction |= DIRECTION_LEFT;
+}
+
+void Spaceship::stopGoingLeft()
+{
+	/* Setting the '1' in the constant equal to zero in '_direction' */
+	_direction = _direction & ~DIRECTION_LEFT;
+}
+
+void Spaceship::goRight()
+{
+	/* If was going left, stop that, now going right. */
+	if ((_direction & DIRECTION_LEFT) != 0)
+	{
+		stopGoingLeft();
+	}
+
+	_direction |= DIRECTION_RIGHT;
+}
+
+void Spaceship::stopGoingRight()
+{
+	/* Setting the '1' in the constant equal to zero in '_direction' */
+	_direction = _direction & ~DIRECTION_RIGHT;
+}
+
+void Spaceship::goBackward()
+{
+	/* If was going forward, stop that, now going backward. */
+	if ((_direction & DIRECTION_FORWARD) != 0)
+	{
+		stopGoingForward();
+	}
+
+	_direction |= DIRECTION_BACKWARD;
+}
+
+void Spaceship::stopGoingBackward()
+{
+	/* Setting the '1' in the constant equal to zero in '_direction' */
+	_direction = _direction & ~DIRECTION_BACKWARD;
 }
 
