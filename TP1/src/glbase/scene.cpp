@@ -87,10 +87,10 @@ void Shape::applyTransformatioMatrix(VertexPositionNormal* vertices, uint nVerti
 			glm::mat4 normalTransformationMatrix = glm::transpose(glm::inverse(transformationMatrix));
 
 			VertexPositionNormal* currentVertex = &vertices[i];
-			vec4 currentVertexPosition = vec4((*currentVertex).position, 1);
-			vec4 currentVertexNormal = vec4((*currentVertex).normal, 1);			
-			(*currentVertex).position = vec3(transformationMatrix * currentVertexPosition);
-			(*currentVertex).normal = glm::normalize(vec3(normalTransformationMatrix * currentVertexNormal));
+			vec4 currentVertexPosition = vec4(currentVertex->position, 1);
+			vec4 currentVertexNormal = vec4(currentVertex->normal, 1);			
+			currentVertex->position = vec3(transformationMatrix * currentVertexPosition);
+			currentVertex->normal = glm::normalize(vec3(normalTransformationMatrix * currentVertexNormal));
 
 			//_LOG_INFO() << "From " << currentVertexPosition.x << ", " << currentVertexPosition.y << ", " << currentVertexPosition.z
 			//	<< "\n......................................to " << (*currentVertex).position.x << ", " << (*currentVertex).position.y << ", " << (*currentVertex).position.z;
