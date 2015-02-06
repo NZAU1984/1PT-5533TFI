@@ -2,6 +2,8 @@
 
 #include "glm/gtx/transform2.hpp"
 
+// TODO remove unnecessary 'mat4()' in transformation matrices
+
 float connectorShearXfractionOfY = -0.5f;
 float connectorShearZfractionOfY = 0.5f;
 float finShearZFractionOfX       = -0.5f;
@@ -83,7 +85,7 @@ float motorTranslationY = connectorTranslationY - connectorHeightAfterShear / 2 
 	+ connectorSpaceVisibleUnderMotor;
 float motorTranslationZ = -1.0f;
 
-glm::vec4 outerMotorFlameColor = vec4(1, 0, 0, 0.5f);
+glm::vec4 outerMotorFlameColor = vec4(1, 0, 1, 0.7f); //vec4(1, 0, 0, 0.5f);
 
 float outerMotorFlameHeight = 0.4f; //0.5f * 0.7f;
 float outerMotorFlameRadius = motorRadius * 0.7f; //;motorRadius * 0.3f;
@@ -136,15 +138,19 @@ glm::mat4 leftConnectorTransformationMatrix = glm::translate(glm::mat4(),
 
 glm::mat4 leftMotorTransformationMatrix_part1 = rotation90degAroundX;
 
-glm::mat4 leftMotorTransformationMatrix = glm::translate(glm::mat4(), 
+glm::mat4 leftMotorTransformationMatrix = rotation90degAroundX;
+
+/*glm::mat4 leftMotorTransformationMatrix = glm::translate(glm::mat4(),
 	vec3(motorTranslationX, motorTranslationY, motorTranslationZ))
-	* rotation90degAroundX;
+	* rotation90degAroundX;*/
 
-glm::mat4 leftMotorOuterFlameTransformationMatrix = glm::translate(glm::mat4(),
+glm::mat4 leftMotorOuterFlameTransformationMatrix = rotation90degAroundX;
+
+/*glm::mat4 leftMotorOuterFlameTransformationMatrix = glm::translate(glm::mat4(),
 	vec3(outerMotorFlameTranslationX, outerMotorFlameTranslationY, outerMotorFlameTranslationZ))
-	* leftMotorTransformationMatrix;
+	* leftMotorTransformationMatrix;*/
 
-glm::mat4 leftMotorInnerFlameTransformationMatrix = leftMotorOuterFlameTransformationMatrix;
+glm::mat4 leftMotorInnerFlameTransformationMatrix = rotation90degAroundX;// leftMotorOuterFlameTransformationMatrix;
 
 glm::mat4 trunkTransformationMatrix = glm::translate(glm::mat4(),
 	vec3(trunkTranslationX, trunkTranslationY, trunkTranslationZ))
@@ -159,13 +165,15 @@ glm::mat4 leftFinTransformationMatrix = glm::translate(glm::mat4(),
 Spaceship::Spaceship() :
 	angle(0),
 
+	_connectorAngle(0),
+
 	mainBody(mainBodyColor, mainBodyTransformationMatrix),
 
 	leftConnector(connectorColor, leftConnectorTransformationMatrix),
 	rightConnector(connectorColor, flipX * leftConnectorTransformationMatrix),
 
 	leftMotor(motorColor, 100, motorHeight, motorRadius, leftMotorTransformationMatrix),
-	rightMotor(motorColor, 100, motorHeight, motorRadius, flipX * leftMotorTransformationMatrix),
+	rightMotor(motorColor, 100, motorHeight, motorRadius, flipX * leftMotorTransformationMatrix), // WARNING
 
 	leftMotorOuterFlame(outerMotorFlameColor, 100, outerMotorFlameHeight, outerMotorFlameRadius, 
 		leftMotorOuterFlameTransformationMatrix),
@@ -209,13 +217,20 @@ void Spaceship::render(double dt)
 			vec3(0.2f, 0.2f, 0.2f)
 		),
 		0.0f, vec3(1, 0, 0)));*/
+
+	animateMotors();
+
 	animateFlames();
+
 	calculatePosition(dt);
-//	leftMotor.SetTransform(leftMotorTransformationMatrix);
+
 	leftMotorOuterFlame.SetTransform(_leftMotorOuterFlameTransformationMatrix);
 	rightMotorOuterFlame.SetTransform(_rightMotorOuterFlameTransformationMatrix);
 	leftMotorInnerFlame.SetTransform(_leftMotorInnerFlameTransformationMatrix);
 	rightMotorInnerFlame.SetTransform(_rightMotorInnerFlameTransformationMatrix);
+
+	leftMotor.SetTransform(_leftMotorTransformationMatrix);
+	rightMotor.SetTransform(_rightMotorTransformationMatrix);
 
 	//mainBody.SetTransform(glm::scale(glm::mat4(), vec3(0.3f, 0.3f, 0.3f)));
 	//mainBody.SetTransform(glm::scale(glm::rotate(glm::mat4(), angle, vec3(0,1,0)), vec3(0.5f, 0.5f, 0.5f)));	 // -glm::pi<float>()/7
@@ -224,6 +239,21 @@ void Spaceship::render(double dt)
 	//_positionZ += 0.01f;
 
 	mainBody.SetTransform(glm::translate(glm::mat4(), vec3(_positionX, 0, _positionZ)));
+	
+	/*mainBody.SetTransform(
+		glm::translate(glm::mat4(), vec3(0,30,-8))
+		*
+		glm::scale(glm::mat4(), vec3(2.0f, 2.0f, 2.0f))
+		*
+		glm::rotate(glm::mat4(), angle, vec3(1,0,0))
+		); // _pos..., 5, -5*/
+	
+	/*
+	glm::rotate(
+		glm::rotate(glm::mat4(), 0.0f, vec3(1,0,0))
+		, glm::pi<float>()/2, vec3(0,1,0)
+		)
+	*/
 
 	leftMotor.Render();
 	rightMotor.Render();
@@ -247,19 +277,83 @@ void Spaceship::render(double dt)
 	angle += (float)dt * 2 * glm::pi<float>() * 0.1f;
 }
 
+void Spaceship::animateMotors()
+{
+	_motorAngle = 0;// glm::pi<float>() / 2;
+
+	// TODO move to global variables
+	float xmotorTranslationX = connectorTranslationX + connectorWidthAfterShear / 2 - connectorWidth / 2
+		- connectorSpaceVisibleUnderMotor / 2;
+	float xmotorTranslationZ = connectorTranslationZ - connectorDepthAfterShear / 2 + connectorDepth / 2;
+
+	_leftMotorTransformationMatrix = glm::translate(glm::mat4(),
+		vec3(xmotorTranslationX, motorTranslationY, xmotorTranslationZ))
+		*
+		glm::rotate(glm::mat4(), _motorAngle, vec3(0, 1, 0));
+
+	_rightMotorTransformationMatrix = glm::translate(glm::mat4(),
+		vec3(-xmotorTranslationX, motorTranslationY, xmotorTranslationZ))
+		*
+		glm::rotate(glm::mat4(), _motorAngle, vec3(0, 1, 0));
+}
+
+/* Animates flames by constantly modifying their size, also makes them bigger when going in specific directions. */
 void Spaceship::animateFlames()
 {
-	float leftOuterFlameDepthRatio = ((_direction & DIRECTION_RIGHT) != 0 || (_direction & DIRECTION_FORWARD) != 0 ? 2.5f : 0) + randomFloat(1.0f, 2.0f);
-	float rightOuterFlameDepthRatio = ((_direction & DIRECTION_LEFT) != 0 || (_direction & DIRECTION_FORWARD) != 0 ? 2.5f : 0) + randomFloat(1.0f, 2.0f);
+	/* Flame size always varies between 1x and 2x their original size. Left flames are bigger when going forward,
+	backward or right, right flames are bigger when going forward, backward or left. When going backward, we flip the
+	'Z' coordinate so the flame are pushing the spaceship towards the origin (Z=0). */
+	float leftOuterFlameDepthRatio = (((_direction & DIRECTION_RIGHT) != 0 || (_direction & DIRECTION_FORWARD) != 0
+		|| (_direction & DIRECTION_BACKWARD) != 0) ? 2.5f : 0) + randomFloat(1.0f, 2.0f);
+	
+	float rightOuterFlameDepthRatio = (((_direction & DIRECTION_LEFT) != 0 || (_direction & DIRECTION_FORWARD) != 0
+		|| (_direction & DIRECTION_BACKWARD) != 0) ? 2.5f : 0) + randomFloat(1.0f, 2.0f);
 	
 	float leftInnerFlameDepthRatio = leftOuterFlameDepthRatio + randomFloat(0, 0.5f);
 	float rightInnerFlameDepthRatio = rightOuterFlameDepthRatio + randomFloat(0, 0.5f);
 
-	_leftMotorOuterFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, ((leftOuterFlameDepthRatio - 1) * 2.75f))) * glm::scale(glm::mat4(), vec3(1, 1, leftOuterFlameDepthRatio));
-	_rightMotorOuterFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, ((rightOuterFlameDepthRatio - 1) * 2.75f))) * glm::scale(glm::mat4(), vec3(1, 1, rightOuterFlameDepthRatio));
-	
-	_leftMotorInnerFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, ((leftInnerFlameDepthRatio - 1) * 2.75f))) * glm::scale(glm::mat4(), vec3(1, 1, leftInnerFlameDepthRatio));
-	_rightMotorInnerFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, ((rightInnerFlameDepthRatio - 1) * 2.75f))) * glm::scale(glm::mat4(), vec3(1, 1, rightInnerFlameDepthRatio));
+	/* Height after 90 rotation becomes depth... */
+	float currentLeftOuterMotorFlameHeight = outerMotorFlameHeight * leftOuterFlameDepthRatio;
+	float currentRightOuterMotorFlameHeight = outerMotorFlameHeight * rightOuterFlameDepthRatio;
+
+	float currentLeftInnerMotorFlameHeight = innerMotorFlameHeight * leftInnerFlameDepthRatio;
+	float currentRightInnerMotorFlameHeight = innerMotorFlameHeight * rightInnerFlameDepthRatio;
+
+	float outerLeftMotorFlameTranslationZ = -((motorHeight + currentLeftOuterMotorFlameHeight) / 2) + 0.01f;
+	float outerRightMotorFlameTranslationZ = -((motorHeight + currentRightOuterMotorFlameHeight) / 2) + 0.01f;
+
+	float innerLeftMotorFlameTranslationZ = -(motorHeight / 2 + (currentLeftInnerMotorFlameHeight / 2)) + 0.01f;
+	float innerRightMotorFlameTranslationZ = -(motorHeight / 2 + (currentRightInnerMotorFlameHeight / 2)) + 0.01f;
+
+	/* Translations are applied to motors whose centers are at (0, 0, 0) before their transformation matrix is applied.
+	Since the flame transformation matrices are applied first, we only translate the 'Z' coordinate. Then, when the
+	motors will have their transformation matrices applied, the motors and the flames will move to the final place. */
+	_leftMotorOuterFlameTransformationMatrix = glm::translate(vec3(0, 0, outerLeftMotorFlameTranslationZ))
+		*
+		glm::scale(vec3(1.0f, 1.0f, leftOuterFlameDepthRatio));
+
+	_rightMotorOuterFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, outerRightMotorFlameTranslationZ))
+		*
+		glm::scale(glm::mat4(), vec3(1.0f, 1.0f, rightOuterFlameDepthRatio));
+
+	_leftMotorInnerFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, innerLeftMotorFlameTranslationZ))
+		*
+		glm::scale(glm::mat4(), vec3(1.0f, 1.0f, leftInnerFlameDepthRatio));
+
+	_rightMotorInnerFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, innerRightMotorFlameTranslationZ))
+		*
+		glm::scale(glm::mat4(), vec3(1.0f, 1.0f, rightInnerFlameDepthRatio));
+
+	/* If spaceship's going backward, flames are reversed (in front of motors), which is more logical than keeping them
+	behind them. */
+	if ((_direction & DIRECTION_BACKWARD) != 0)
+	{
+		_leftMotorOuterFlameTransformationMatrix = flipZ * _leftMotorOuterFlameTransformationMatrix;
+		_rightMotorOuterFlameTransformationMatrix = flipZ * _rightMotorOuterFlameTransformationMatrix;
+
+		_leftMotorInnerFlameTransformationMatrix = flipZ * _leftMotorInnerFlameTransformationMatrix;
+		_rightMotorInnerFlameTransformationMatrix = flipZ * _rightMotorInnerFlameTransformationMatrix;
+	}
 }
 
 /* Calculates the Z and Z positions of the spaceship. The direction is represented by different constants which all
@@ -346,6 +440,11 @@ direction. */
 
 void Spaceship::goForward()
 {
+	if (_positionX >= 75)
+	{
+		return;
+	}
+
 	/* If was going backward, stop that, let's go forward. */
 	if ((_direction & DIRECTION_BACKWARD) != 0)
 	{
@@ -397,6 +496,13 @@ void Spaceship::stopGoingRight()
 
 void Spaceship::goBackward()
 {
+	// TODO simplify, constants ...
+	if (_positionX <= 0)
+	{
+		_LOG_INFO() << "= 0";
+		//return;
+	}
+
 	/* If was going forward, stop that, now going backward. */
 	if ((_direction & DIRECTION_FORWARD) != 0)
 	{

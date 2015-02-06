@@ -46,6 +46,14 @@ protected:
 
 	float angle;
 
+	// TODO delete
+	float _connectorAngle;
+
+	float _motorAngle;
+
+	glm::mat4 _leftMotorTransformationMatrix;
+	glm::mat4 _rightMotorTransformationMatrix;
+
 	glm::mat4 _leftMotorOuterFlameTransformationMatrix;
 	glm::mat4 _rightMotorOuterFlameTransformationMatrix;
 	glm::mat4 _leftMotorInnerFlameTransformationMatrix;
@@ -67,7 +75,13 @@ protected:
 
 	float _positionX = 0;
 
+	void animateMotors();
+
 	void animateFlames();
 
 	void calculatePosition(double dt);
+
+	// TEMP var below
+
+	uint TEMP1 = 0;
 };
