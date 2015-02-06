@@ -68,45 +68,35 @@ void Shape::Render()
 	}
 }
 
+/* Applies an initial transformation matrix to (try to) reduce a tiny bit the number of calculations at each frame
+rendering. Also, it calculates the min/max X, Y, Z used to determine the bouncing box. */
 void Shape::applyTransformatioMatrix(VertexPositionNormal* vertices, uint nVertices, const glm::mat4& transformationMatrix)
 {
-	if (transformationMatrix != glm::mat4())
-	{	
-		float minX = vertices[0].position.x, 
-			maxX = vertices[0].position.x,
-			minY = vertices[0].position.y,
-			maxY = vertices[0].position.y,
-			minZ = vertices[0].position.z,
-			maxZ = vertices[0].position.z;
+	float minX = vertices[0].position.x,
+		maxX = vertices[0].position.x,
+		minY = vertices[0].position.y,
+		maxY = vertices[0].position.y,
+		minZ = vertices[0].position.z,
+		maxZ = vertices[0].position.z;
 
-		for (uint i = 0; i < nVertices; ++i)
-		{
-			/* We have to adapt normals, but only some cases, for example, a rotation. If we shear a shape, we must
-			NOT modify the normals. The following line was taken from 
-			http://www.arcsynthesis.org/gltut/Illumination/Tut09%20Normal%20Transformation.html */
-			glm::mat4 normalTransformationMatrix = glm::transpose(glm::inverse(transformationMatrix));
+	/* We have to adapt normals, but only some cases, for example, a rotation. If we shear a shape, we must
+	NOT modify the normals. The following line was taken from
+	http://www.arcsynthesis.org/gltut/Illumination/Tut09%20Normal%20Transformation.html */
+	glm::mat4 normalTransformationMatrix = glm::transpose(glm::inverse(transformationMatrix));
 
-			VertexPositionNormal* currentVertex = &vertices[i];
-			vec4 currentVertexPosition = vec4(currentVertex->position, 1);
-			vec4 currentVertexNormal = vec4(currentVertex->normal, 1);			
-			currentVertex->position = vec3(transformationMatrix * currentVertexPosition);
-			currentVertex->normal = glm::normalize(vec3(normalTransformationMatrix * currentVertexNormal));
-
-			//_LOG_INFO() << "From " << currentVertexPosition.x << ", " << currentVertexPosition.y << ", " << currentVertexPosition.z
-			//	<< "\n......................................to " << (*currentVertex).position.x << ", " << (*currentVertex).position.y << ", " << (*currentVertex).position.z;
-		
-			minX = min(minX, (*currentVertex).position.x);
-			maxX = max(maxX, (*currentVertex).position.x);
-
-			minY = min(minY, (*currentVertex).position.y);
-			maxY = max(maxY, (*currentVertex).position.y);
-
-			minZ = min(minZ, (*currentVertex).position.z);
-			maxZ = max(maxZ, (*currentVertex).position.z);
-		}
-
-		_LOG_INFO() << "minX=" << minX << ", maxX=" << maxX << ", minY=" << minY << ", maxY=" << maxY << ", minZ=" << minZ << ", maxZ=" << maxZ;
+	/* Applies the transformation to the position vectors AND normal vectors. For the sake of simplification, it also
+	applies the transformations when the matrix is the identity matrix because we need to go through each vertex to
+	get the min/max X, Y, Z. */
+	for (uint i = 0; i < nVertices; ++i)
+	{
+		VertexPositionNormal* currentVertex = &vertices[i];
+		vec4 currentVertexPosition          = vec4(currentVertex->position, 1);
+		vec4 currentVertexNormal            = vec4(currentVertex->normal, 1);			
+		currentVertex->position             = vec3(transformationMatrix * currentVertexPosition);
+		currentVertex->normal               = glm::normalize(vec3(normalTransformationMatrix * currentVertexNormal));
 	}
+
+	_LOG_INFO() << "minX=" << minX << ", maxX=" << maxX << ", minY=" << minY << ", maxY=" << maxY << ", minZ=" << minZ << ", maxZ=" << maxZ;
 }
 
 glm::vec3 Shape::getCenterVector() const

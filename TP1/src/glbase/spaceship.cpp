@@ -264,7 +264,16 @@ void Spaceship::animateFlames()
 
 /* Calculates the Z and Z positions of the spaceship. The direction is represented by different constants which all
 have a '1' at a different position (bit shift), and we can combine those constants combine directions, for example
-going FORWARD and going LEFT at the same time. We prevent being able to go FORWARD and BACKWARD at the same time. */
+going FORWARD and going LEFT at the same time. We prevent being able to go FORWARD and BACKWARD at the same time.
+
+Known bug:
+    - Hold 'S' to go backward, spaceship goes backward
+	- Hold 'W' to go forward (but don't release 'S'), spaceship stops going backward and goes forward
+	- Release 'W' (but don't release 'S'), spaceship stops but does not go backward as expected.
+
+	The same thing holds if you first hold 'W', and then hold 'S' and release 'S' but keep holding 'W', same thing
+	also for left and right.
+*/
 void Spaceship::calculatePosition(double dt)
 {
 	if (DIRECTION_NO_CHANGE == _direction)
