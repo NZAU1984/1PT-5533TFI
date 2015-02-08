@@ -67,13 +67,54 @@ protected:
 
 	uint _direction = DIRECTION_NO_CHANGE;
 
-	float _deltaZperSecond = 25;
-
 	float _positionZ = 0;
 
-	float _deltaXperSecond = 15;
-
 	float _positionX = 0;
+
+	const float _minPositionZ = 0;
+	const float _maxPositionZ = 75;
+
+	const float _minPositionX = -15;
+	const float _maxPositionX = 15;
+
+	float _minStopAcceleratingX = 0;
+	float _maxStopAcceleratingX = 0;
+
+	float _minStopAcceleratingZ = 0;
+	float _maxStopAcceleratingZ = 0;
+
+	float _stopAcceleratingX = 0;
+	float _stopAcceleratingZ = 0;
+
+	float _stopAcceleratingFractionX = 6.0f / 15;
+	float _stopAcceleratingFractionZ = 6.0f / 15;
+
+
+	float _speedZ = 0;
+
+	float _speedX = 0;
+
+	const float _maxSpeedZ = 50;
+
+	const float _maxSpeedX = 25;
+
+	const float _accelerationZ = 25;
+
+	const float _accelerationX = 25;
+
+	float _currentAccelerationZ = 0;
+
+	float _currentAccelerationX = 0;
+
+	float _dragZ = 10;
+
+	float _dragX = 10;
+
+	float _maxMotorAngle = glm::pi<float>() / 6;
+
+	float _deltaZperSecond = 25;
+
+	float _deltaXperSecond = 15;
 
 	void animateMotors();
 
@@ -81,7 +122,33 @@ protected:
 
 	void calculatePosition(double dt);
 
+	bool isGoingForward();
+
+	bool isGoingLeft();
+
+	bool isGoingRight();
+
+	bool isGoingBackward();
+
+	bool isStillZ();
+
+	bool isStillX();
+
+	bool isAcceleratingForward();
+
+	bool isAcceleratingLeft();
+
+	bool isAcceleratingRight();
+
+	bool isAcceleratingBackward();
+
+	bool isNotAcceleratingZ();
+
+	bool isNotAcceleratingX();
+
 	// TEMP var below
 
 	uint TEMP1 = 0;
+
+	uint TEMP2 = 0;
 };

@@ -279,7 +279,25 @@ void Spaceship::render(double dt)
 
 void Spaceship::animateMotors()
 {
-	_motorAngle = 0;// glm::pi<float>() / 2;
+	_motorAngle = 0;
+	
+	// tan = opposé / adjacent
+
+//	if (_speedZ == 0 && _speedX != 0)
+//	{
+		_motorAngle = sign(_speedX) * ((_speedZ == 0) ? 1 : sign(_speedZ)) * _maxMotorAngle * (abs(_speedX) / _maxSpeedX);
+//	}
+	//else if (_speedZ != 0 && _speedX != 0)
+	//{
+	//	_motorAngle = atan(_speedX / _speedZ);
+	//}
+
+	if (abs(_motorAngle) > _maxMotorAngle)
+	{
+		_motorAngle = _maxMotorAngle * sign(_motorAngle);
+	}
+
+//	_LOG_INFO() << _speedZ << " :: " << _speedX;
 
 	// TODO move to global variables
 	float xmotorTranslationX = connectorTranslationX + connectorWidthAfterShear / 2 - connectorWidth / 2
@@ -370,6 +388,142 @@ Known bug:
 */
 void Spaceship::calculatePosition(double dt)
 {
+	_speedZ = _speedZ + (_currentAccelerationZ * dt);
+
+	float dragEffectZ = _dragZ * dt;
+
+	if (dragEffectZ > abs(_speedZ))
+	{
+		_speedZ = 0;
+	}
+	else
+	{
+		_speedZ -= sign(_speedZ) * dragEffectZ;
+	}
+
+	if (abs(_speedZ) > _maxSpeedZ)
+	{
+		_speedZ = sign(_speedZ) * _maxSpeedZ;
+	}
+
+	_positionZ += _speedZ * dt;
+
+	if (_positionZ >= _maxPositionZ)
+	{
+		_positionZ = _maxPositionZ;
+
+		//if (sign(_speedZ) >= 0)
+		if (isGoingForward() || isStillZ())
+		{
+			_speedZ = 0;
+		}
+	}
+	else if (_positionZ < _minPositionZ)
+	{
+		_positionZ = _minPositionZ;
+
+		//if (sign(_speedZ) <= 0)
+		if (isGoingBackward() || isStillZ())
+		{
+			_speedZ = 0;
+		}
+	}
+
+	// --- //
+
+	//_LOG_INFO() << "_speedX = " << _speedX << " + " << _currentAccelerationX << " * " << dt << " = " << _speedX << " + " << (_currentAccelerationX * dt);
+	
+	_speedX = _speedX + (_currentAccelerationX * dt);
+
+	float dragEffectX = _dragX * dt;
+
+	if (dragEffectX > abs(_speedX))
+	{
+		_speedX = 0;
+	}
+	else
+	{
+		_speedX -= sign(_speedX) * dragEffectX;
+	}
+
+	if (abs(_speedX) > _maxSpeedX)
+	{
+		_speedX = sign(_speedX) * _maxSpeedX;
+	}
+
+	_positionX += _speedX * dt;
+
+	if (_positionX >= _maxPositionX)
+	{
+		_positionX = _maxPositionX;
+
+		if (isGoingLeft() || isStillX())
+		{
+			_speedX = 0;
+		}
+	}
+	else if (_positionX < _minPositionX)
+	{
+		_positionX = _minPositionX;
+
+		if (isGoingRight() || isStillX())
+		{
+			_speedX = 0;
+		}
+	}
+	else if (isAcceleratingLeft() && _speedX > 0)
+	{
+		float distanceToLeft = _maxPositionX - _positionX;
+		float timeUntilCollision = (float) distanceToLeft / (_speedX / 2);
+		float dragEffect = (float) _dragX * timeUntilCollision;
+
+		if (_speedX - dragEffect > 0)
+		{
+			_currentAccelerationX = 0;
+		}
+	}
+	else if (isAcceleratingRight() && _speedX < 0)
+	{
+		float distanceToRight = _positionX - _minPositionX;
+		float timeUntilCollision = (float) distanceToRight / (abs(_speedX) / 2);
+		float dragEffect = (float) _dragX * timeUntilCollision;
+
+		if (_speedX + dragEffect < 0)
+		{
+			_currentAccelerationX = 0;
+		}
+	}
+	else if (isAcceleratingForward() && _speedZ > 0)
+	{
+		
+		float distanceAhead = _maxPositionZ - _positionZ;
+		float timeUntilCollision = (float) distanceAhead / (_speedZ / 2);
+		float dragEffect = (float) _dragZ * timeUntilCollision;
+
+		if (_speedZ - dragEffect > 0)
+		{
+			_LOG_INFO() << "========================== DING !";
+			_currentAccelerationZ = 0;
+		}
+	}
+	else if (isAcceleratingBackward() && _speedZ < 0)
+	{
+		float distanceToBack = _positionZ - _minPositionZ;
+		float timeUntilCollision = (float) distanceToBack / (abs(_speedZ) / 2);
+		float dragEffect = (float) _dragZ * timeUntilCollision;
+
+		if (_speedZ + dragEffect < 0)
+		{
+			_currentAccelerationZ = 0;
+		}
+	}
+
+	//_LOG_INFO() << _positionZ;
+	// --- //
+	// before ...
+
+	return;
+
 	if (DIRECTION_NO_CHANGE == _direction)
 	{
 		/* Going nowhere */
@@ -440,15 +594,17 @@ direction. */
 
 void Spaceship::goForward()
 {
-	if (_positionX >= 75)
+	if (_positionZ >= _maxPositionZ)
 	{
-		return;
+		//return;
 	}
+
+	_currentAccelerationZ = _accelerationZ;
 
 	/* If was going backward, stop that, let's go forward. */
 	if ((_direction & DIRECTION_BACKWARD) != 0)
 	{
-		stopGoingBackward();
+	//	stopGoingBackward();
 	}
 
 	_direction |= DIRECTION_FORWARD;
@@ -456,16 +612,28 @@ void Spaceship::goForward()
 
 void Spaceship::stopGoingForward()
 {
+	if (isAcceleratingForward())
+	{
+		_currentAccelerationZ = 0;
+	}
+
 	/* Setting the '1' in the constant equal to zero in '_direction' */
 	_direction = _direction & ~DIRECTION_FORWARD;
+
+	_currentAccelerationZ = 0;
 }
 
 void Spaceship::goLeft()
 {
+	_currentAccelerationX = _accelerationX;
+
+	_stopAcceleratingX = (float) _stopAcceleratingFractionX * (_maxPositionX - max(_positionX, 0.0f));
+	//_LOG_INFO() << "stopAcc... = " << _stopAcceleratingX << " = " << _stopAcceleratingFractionX << " * (" << _maxPositionX << " - max(" << _positionX << ", 0.0f))";
+
 	/* If going right, stop going right, now going left. */
 	if ((_direction & DIRECTION_RIGHT) != 0)
 	{
-		stopGoingRight();
+	//	stopGoingRight();
 	}
 
 	_direction |= DIRECTION_LEFT;
@@ -473,16 +641,23 @@ void Spaceship::goLeft()
 
 void Spaceship::stopGoingLeft()
 {
+	if (isAcceleratingLeft())
+	{
+		_currentAccelerationX = 0;
+	}
+
 	/* Setting the '1' in the constant equal to zero in '_direction' */
 	_direction = _direction & ~DIRECTION_LEFT;
 }
 
 void Spaceship::goRight()
 {
+	_currentAccelerationX = -_accelerationX;
+
 	/* If was going left, stop that, now going right. */
 	if ((_direction & DIRECTION_LEFT) != 0)
 	{
-		stopGoingLeft();
+	//	stopGoingLeft();
 	}
 
 	_direction |= DIRECTION_RIGHT;
@@ -490,23 +665,30 @@ void Spaceship::goRight()
 
 void Spaceship::stopGoingRight()
 {
+	if (isAcceleratingRight())
+	{
+		_currentAccelerationX = 0;
+	}
+
 	/* Setting the '1' in the constant equal to zero in '_direction' */
 	_direction = _direction & ~DIRECTION_RIGHT;
 }
 
 void Spaceship::goBackward()
 {
+	_currentAccelerationZ = -_accelerationZ;
+
 	// TODO simplify, constants ...
 	if (_positionX <= 0)
 	{
-		_LOG_INFO() << "= 0";
+		//_LOG_INFO() << "= 0";
 		//return;
 	}
 
 	/* If was going forward, stop that, now going backward. */
 	if ((_direction & DIRECTION_FORWARD) != 0)
 	{
-		stopGoingForward();
+		//stopGoingForward();
 	}
 
 	_direction |= DIRECTION_BACKWARD;
@@ -514,7 +696,73 @@ void Spaceship::goBackward()
 
 void Spaceship::stopGoingBackward()
 {
+	if (isAcceleratingBackward())
+	{
+		_currentAccelerationZ = 0;
+	}
+
 	/* Setting the '1' in the constant equal to zero in '_direction' */
 	_direction = _direction & ~DIRECTION_BACKWARD;
 }
+
+bool Spaceship::isGoingForward()
+{
+	return (sign(_speedZ) > 0);
+}
+
+bool Spaceship::isGoingLeft()
+{
+	return (sign(_speedX) > 0);
+}
+
+bool Spaceship::isGoingRight()
+{
+	return (sign(_speedX) < 0);
+}
+
+bool Spaceship::isGoingBackward()
+{
+	return (sign(_speedZ) < 0);
+}
+
+bool Spaceship::isStillZ()
+{
+	return (sign(_speedZ) == 0);
+}
+
+bool Spaceship::isStillX()
+{
+	return (sign(_speedX) == 0);
+}
+
+bool Spaceship::isAcceleratingForward()
+{
+	return (sign(_currentAccelerationZ) > 0);
+}
+
+bool Spaceship::isAcceleratingLeft()
+{
+	return (sign(_currentAccelerationX) > 0);
+}
+
+bool Spaceship::isAcceleratingRight()
+{
+	return (sign(_currentAccelerationX) < 0);
+}
+
+bool Spaceship::isAcceleratingBackward()
+{
+	return (sign(_currentAccelerationZ) < 0);
+}
+
+bool Spaceship::isNotAcceleratingZ()
+{
+	return (sign(_currentAccelerationZ) == 0);
+}
+
+bool Spaceship::isNotAcceleratingX()
+{
+	return (sign(_currentAccelerationX) == 0);
+}
+
 
