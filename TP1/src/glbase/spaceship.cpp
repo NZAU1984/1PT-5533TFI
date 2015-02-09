@@ -2,15 +2,13 @@
 
 #include "glm/gtx/transform2.hpp"
 
-// TODO remove unnecessary 'mat4()' in transformation matrices
-
 float connectorShearXfractionOfY = -0.5f;
 float connectorShearZfractionOfY = 0.5f;
 float finShearZFractionOfX       = -0.5f;
 
-glm::mat4 rotation90degAroundX(glm::rotate(glm::mat4(), glm::pi<float>() / 2, vec3(1, 0, 0)));
+glm::mat4 rotation90degAroundX(glm::rotate(glm::pi<float>() / 2, vec3(1, 0, 0)));
 
-glm::mat4 rotation90degAroundY(glm::rotate(glm::mat4(), glm::pi<float>(), vec3(0, 1, 0)));
+glm::mat4 rotation90degAroundY(glm::rotate(glm::pi<float>(), vec3(0, 1, 0)));
 
 glm::mat4 connectorShear
 {
@@ -79,20 +77,19 @@ float motorRadius = 0.3f;
 
 float connectorSpaceVisibleUnderMotor = 0.2f;
 
-float motorTranslationX = connectorTranslationX + connectorWidthAfterShear / 2 - motorRadius / 2
-	- connectorSpaceVisibleUnderMotor;
+float motorTranslationX = 0;
 float motorTranslationY = connectorTranslationY - connectorHeightAfterShear / 2 + motorRadius / 2
 	+ connectorSpaceVisibleUnderMotor;
 float motorTranslationZ = -1.0f;
 
-glm::vec4 outerMotorFlameColor = vec4(1, 0, 1, 0.7f); //vec4(1, 0, 0, 0.5f);
+glm::vec4 outerMotorFlameColor = vec4(1, 0, 1, 0.7f);
 
-float outerMotorFlameHeight = 0.4f; //0.5f * 0.7f;
-float outerMotorFlameRadius = motorRadius * 0.7f; //;motorRadius * 0.3f;
+float outerMotorFlameHeight = 0.4f;
+float outerMotorFlameRadius = motorRadius * 0.7f;
 
 float outerMotorFlameTranslationX = 0;
 float outerMotorFlameTranslationY = 0;
-float outerMotorFlameTranslationZ = -((motorHeight + outerMotorFlameHeight) / 2) + 0.01f; // '+ 0.01f' to prevent image from flickering...
+float outerMotorFlameTranslationZ = -((motorHeight + outerMotorFlameHeight) / 2) + 0.01f;
 
 glm::vec4 innerMotorFlameColor = vec4(1, 0, 0, 1.0f);
 
@@ -129,43 +126,35 @@ float finTranslationX = finWidthAfterShear / 2;
 float finTranslationY = 0;
 float finTranslationZ = trunkTranslationZ * 2 - finDepthAfterShear / 2 + 0.2f;
 
-glm::mat4 mainBodyTransformationMatrix = glm::scale(glm::mat4(), vec3(mainBodyWidth, mainBodyHeight, mainBodyDepth));
+glm::mat4 mainBodyTransformationMatrix = glm::scale(vec3(mainBodyWidth, mainBodyHeight, mainBodyDepth));
 
-glm::mat4 leftConnectorTransformationMatrix = glm::translate(glm::mat4(),
-	vec3(connectorTranslationX, connectorTranslationY, connectorTranslationZ))
+glm::mat4 leftConnectorTransformationMatrix =
+	  glm::translate(vec3(connectorTranslationX, connectorTranslationY, connectorTranslationZ))
 	* connectorShear 
-	* glm::scale(glm::mat4(), vec3(connectorWidth, connectorHeight, connectorDepth));
+	* glm::scale(vec3(connectorWidth, connectorHeight, connectorDepth));
 
 glm::mat4 leftMotorTransformationMatrix_part1 = rotation90degAroundX;
 
 glm::mat4 leftMotorTransformationMatrix = rotation90degAroundX;
 
-/*glm::mat4 leftMotorTransformationMatrix = glm::translate(glm::mat4(),
-	vec3(motorTranslationX, motorTranslationY, motorTranslationZ))
-	* rotation90degAroundX;*/
-
 glm::mat4 leftMotorOuterFlameTransformationMatrix = rotation90degAroundX;
-
-/*glm::mat4 leftMotorOuterFlameTransformationMatrix = glm::translate(glm::mat4(),
-	vec3(outerMotorFlameTranslationX, outerMotorFlameTranslationY, outerMotorFlameTranslationZ))
-	* leftMotorTransformationMatrix;*/
 
 glm::mat4 leftMotorInnerFlameTransformationMatrix = rotation90degAroundX;// leftMotorOuterFlameTransformationMatrix;
 
-glm::mat4 trunkTransformationMatrix = glm::translate(glm::mat4(),
-	vec3(trunkTranslationX, trunkTranslationY, trunkTranslationZ))
-	* glm::scale(glm::mat4(), vec3(trunkScaleX, trunkScaleY, trunkScaleZ))
+glm::mat4 trunkTransformationMatrix =
+	  glm::translate(vec3(trunkTranslationX, trunkTranslationY, trunkTranslationZ))
+	* glm::scale(vec3(trunkScaleX, trunkScaleY, trunkScaleZ))
 	* rotation90degAroundX;
 
-glm::mat4 leftFinTransformationMatrix = glm::translate(glm::mat4(),
-	vec3(finTranslationX, finTranslationY, finTranslationZ))
+glm::mat4 leftFinTransformationMatrix =
+	  glm::translate(vec3(finTranslationX, finTranslationY, finTranslationZ))
 	* finShear
-	* glm::scale(glm::mat4(), vec3(finWidth, finHeight, finDepth));
+	* glm::scale(vec3(finWidth, finHeight, finDepth));
 
+/* Constructor. Builds all shapes. Some shapes like fins (ailerons en français) will never change, except when the
+   mainBody shape (a Box) is translated. We can then avoid applying a transformation matrix to them at every frame
+   rendering, so we apply initial transformation matrices (shear transformation and translation) to the right here. */
 Spaceship::Spaceship() :
-	angle(0),
-
-	_connectorAngle(0),
 
 	mainBody(mainBodyColor, mainBodyTransformationMatrix),
 
@@ -190,6 +179,8 @@ Spaceship::Spaceship() :
 	leftFin(finColor, leftFinTransformationMatrix),
 	rightFin(finColor, flipX * leftFinTransformationMatrix)
 {
+	/* Building shape hierarchy. */
+
 	leftMotor.AddChild(&leftMotorInnerFlame);
 	rightMotor.AddChild(&rightMotorInnerFlame);
 
@@ -208,52 +199,30 @@ Spaceship::Spaceship() :
 	mainBody.AddChild(&trunk);
 }
 
+/* Called every time a frame is rendered. */
 void Spaceship::render(double dt)
 {
+	calculatePosition(dt);
 
-	/*mainBody.SetTransform(glm::rotate(
-		glm::scale(
-			glm::translate(glm::mat4(), vec3(0, -2.5f, 0)), 
-			vec3(0.2f, 0.2f, 0.2f)
-		),
-		0.0f, vec3(1, 0, 0)));*/
-
-	animateMotors();
+	animateMotors(dt);
 
 	animateFlames();
 
-	calculatePosition(dt);
-
+	/* First applying transformation matrices to flames (which are children of motors). */
 	leftMotorOuterFlame.SetTransform(_leftMotorOuterFlameTransformationMatrix);
 	rightMotorOuterFlame.SetTransform(_rightMotorOuterFlameTransformationMatrix);
 	leftMotorInnerFlame.SetTransform(_leftMotorInnerFlameTransformationMatrix);
 	rightMotorInnerFlame.SetTransform(_rightMotorInnerFlameTransformationMatrix);
 
+	/* Then, applying transformation matrices to motors (parents of flames). */
 	leftMotor.SetTransform(_leftMotorTransformationMatrix);
 	rightMotor.SetTransform(_rightMotorTransformationMatrix);
 
-	//mainBody.SetTransform(glm::scale(glm::mat4(), vec3(0.3f, 0.3f, 0.3f)));
-	//mainBody.SetTransform(glm::scale(glm::rotate(glm::mat4(), angle, vec3(0,1,0)), vec3(0.5f, 0.5f, 0.5f)));	 // -glm::pi<float>()/7
-	//mainBody.SetTransform(glm::rotate(glm::mat4(), angle, vec3(0,1,0)));
-	
-	//_positionZ += 0.01f;
+	/* Finally, applying transformation matrix to mainBody (the main parent) to move the spaceship to calculated
+	   X and Z positions. */
+	mainBody.SetTransform(glm::translate(vec3(_positionX, 0, _positionZ)));
 
-	mainBody.SetTransform(glm::translate(glm::mat4(), vec3(_positionX, 0, _positionZ)));
-	
-	/*mainBody.SetTransform(
-		glm::translate(glm::mat4(), vec3(0,30,-8))
-		*
-		glm::scale(glm::mat4(), vec3(2.0f, 2.0f, 2.0f))
-		*
-		glm::rotate(glm::mat4(), angle, vec3(1,0,0))
-		); // _pos..., 5, -5*/
-	
-	/*
-	glm::rotate(
-		glm::rotate(glm::mat4(), 0.0f, vec3(1,0,0))
-		, glm::pi<float>()/2, vec3(0,1,0)
-		)
-	*/
+	/*Rendering shapes. */
 
 	leftMotor.Render();
 	rightMotor.Render();
@@ -273,98 +242,125 @@ void Spaceship::render(double dt)
 
 	leftMotorInnerFlame.Render();
 	rightMotorInnerFlame.Render();
-
-	angle += (float)dt * 2 * glm::pi<float>() * 0.1f;
 }
 
-void Spaceship::animateMotors()
+/* Adapts the motor angles according to X speed and reverses that angle if spaceship is accelerating/moving backward.*/
+void Spaceship::animateMotors(double dt)
 {
-	_motorAngle = 0;
-	
-	// tan = opposé / adjacent
+	/* We simply define the angle using the fraction of X speed over the maximum X speed. */
+	double currentMotorAngle = sign(_speedX) * _maxMotorAngle * (abs(_speedX) / _maxSpeedX);
 
-//	if (_speedZ == 0 && _speedX != 0)
-//	{
-		_motorAngle = sign(_speedX) * ((_speedZ == 0) ? 1 : sign(_speedZ)) * _maxMotorAngle * (abs(_speedX) / _maxSpeedX);
-//	}
-	//else if (_speedZ != 0 && _speedX != 0)
-	//{
-	//	_motorAngle = atan(_speedX / _speedZ);
-	//}
+	/* If going/accelerating backward, flip the angle because flame will appear in front of the motors. */
+	if (_forceBackwardMotors && (isGoingBackward() || isAcceleratingBackward()))
+	{
+		currentMotorAngle *= -1;
+	}
 
+	double deltaAngle = currentMotorAngle - _motorAngle;
+
+	/* We want to prevent sudden "big" rotations, for example when suddenly going from forward to backward (which flips
+	   the angle). */
+	if ((abs(deltaAngle) / dt) > _maxMotorAngleDeltaPerSecond)
+	{
+		_motorAngle += sign(deltaAngle) * _maxMotorAngleDeltaPerSecond * dt;
+	}
+	else
+	{
+		_motorAngle = currentMotorAngle;
+	}
+
+	/* Check against angle limit. */
 	if (abs(_motorAngle) > _maxMotorAngle)
 	{
 		_motorAngle = _maxMotorAngle * sign(_motorAngle);
 	}
 
-//	_LOG_INFO() << _speedZ << " :: " << _speedX;
-
-	// TODO move to global variables
-	float xmotorTranslationX = connectorTranslationX + connectorWidthAfterShear / 2 - connectorWidth / 2
+	/* Calculate X and Z translation to keep center aligned at the right spot. */
+	motorTranslationX = connectorTranslationX + connectorWidthAfterShear / 2 - connectorWidth / 2
 		- connectorSpaceVisibleUnderMotor / 2;
-	float xmotorTranslationZ = connectorTranslationZ - connectorDepthAfterShear / 2 + connectorDepth / 2;
 
-	_leftMotorTransformationMatrix = glm::translate(glm::mat4(),
-		vec3(xmotorTranslationX, motorTranslationY, xmotorTranslationZ))
-		*
-		glm::rotate(glm::mat4(), _motorAngle, vec3(0, 1, 0));
+	motorTranslationZ = connectorTranslationZ - connectorDepthAfterShear / 2 + connectorDepth / 2;
 
-	_rightMotorTransformationMatrix = glm::translate(glm::mat4(),
-		vec3(-xmotorTranslationX, motorTranslationY, xmotorTranslationZ))
+	/* Creating transformation matrices. */
+	_leftMotorTransformationMatrix =
+		glm::translate(vec3(motorTranslationX, motorTranslationY, motorTranslationZ))
 		*
-		glm::rotate(glm::mat4(), _motorAngle, vec3(0, 1, 0));
+		glm::rotate((float) _motorAngle, vec3(0, 1, 0));
+
+	_rightMotorTransformationMatrix =
+		glm::translate(vec3(-motorTranslationX, motorTranslationY, motorTranslationZ))
+		*
+		glm::rotate((float) _motorAngle, vec3(0, 1, 0));
 }
 
 /* Animates flames by constantly modifying their size, also makes them bigger when going in specific directions. */
 void Spaceship::animateFlames()
 {
-	/* Flame size always varies between 1x and 2x their original size. Left flames are bigger when going forward,
-	backward or right, right flames are bigger when going forward, backward or left. When going backward, we flip the
-	'Z' coordinate so the flame are pushing the spaceship towards the origin (Z=0). */
-	float leftOuterFlameDepthRatio = (((_direction & DIRECTION_RIGHT) != 0 || (_direction & DIRECTION_FORWARD) != 0
-		|| (_direction & DIRECTION_BACKWARD) != 0) ? 2.5f : 0) + randomFloat(1.0f, 2.0f);
+	bool goingForward = _forceForwardMotors && (isGoingForward() || isAcceleratingForward());
+	bool goingBackward = _forceBackwardMotors && (isGoingBackward() || isAcceleratingBackward());
+
+	/* Ratios for left and right outer flames:
+	       - When going forward/backward (key down AND moving), both flames get '+ 2.5x' their original size;
+		   - When going right (key down AND moving), no matter if going forward/backward, left flame gets '+ 2.5x' its
+		     original size (combines with forward/backward movement, meaning that forward/backward AND right = 5.0x);
+		   - When going left (key down AND moving), no matter if going forward/backward, right flames '+ 2.5x' its
+		     original size (combines ... just like above);
+			- Finally, a random number between 1.0f and 2.0f is added to create the flame movement. */
+	float leftOuterFlameDepthRatio =
+		  ((goingForward|| goingBackward) ? 2.5f : 0)
+		+ ((_forceRightMotor && (isGoingRight() || isAcceleratingRight())) ? 2.5f : 0)
+		+ randomFloat(1.0f, 2.0f);
 	
-	float rightOuterFlameDepthRatio = (((_direction & DIRECTION_LEFT) != 0 || (_direction & DIRECTION_FORWARD) != 0
-		|| (_direction & DIRECTION_BACKWARD) != 0) ? 2.5f : 0) + randomFloat(1.0f, 2.0f);
+	float rightOuterFlameDepthRatio = 
+		  ((goingForward || goingBackward) ? 2.5f : 0)
+		+ ((_forceLeftMotor && (isGoingLeft() || isAcceleratingLeft())) ? 2.5f : 0)
+		+ randomFloat(1.0f, 2.0f);
 	
-	float leftInnerFlameDepthRatio = leftOuterFlameDepthRatio + randomFloat(0, 0.5f);
+	/* Inner flames are a bit bigger than outer flames (but the random number can be 0, so they might be as big as
+	   outer flames). */
+	float leftInnerFlameDepthRatio  = leftOuterFlameDepthRatio + randomFloat(0, 0.5f);
 	float rightInnerFlameDepthRatio = rightOuterFlameDepthRatio + randomFloat(0, 0.5f);
 
-	/* Height after 90 rotation becomes depth... */
-	float currentLeftOuterMotorFlameHeight = outerMotorFlameHeight * leftOuterFlameDepthRatio;
-	float currentRightOuterMotorFlameHeight = outerMotorFlameHeight * rightOuterFlameDepthRatio;
+	/* Calculating new heights. */
+	float currentLeftOuterMotorFlameDepth  = outerMotorFlameHeight * leftOuterFlameDepthRatio;
+	float currentRightOuterMotorFlameDepth = outerMotorFlameHeight * rightOuterFlameDepthRatio;
+	float currentLeftInnerMotorFlameDepth  = innerMotorFlameHeight * leftInnerFlameDepthRatio;
+	float currentRightInnerMotorFlameDepth = innerMotorFlameHeight * rightInnerFlameDepthRatio;
 
-	float currentLeftInnerMotorFlameHeight = innerMotorFlameHeight * leftInnerFlameDepthRatio;
-	float currentRightInnerMotorFlameHeight = innerMotorFlameHeight * rightInnerFlameDepthRatio;
-
-	float outerLeftMotorFlameTranslationZ = -((motorHeight + currentLeftOuterMotorFlameHeight) / 2) + 0.01f;
-	float outerRightMotorFlameTranslationZ = -((motorHeight + currentRightOuterMotorFlameHeight) / 2) + 0.01f;
-
-	float innerLeftMotorFlameTranslationZ = -(motorHeight / 2 + (currentLeftInnerMotorFlameHeight / 2)) + 0.01f;
-	float innerRightMotorFlameTranslationZ = -(motorHeight / 2 + (currentRightInnerMotorFlameHeight / 2)) + 0.01f;
+	/* Calculating Z translations to put flames at the end of motor. We add '0.01f' to avoid a flickering effect 
+	   which is sometimes visibles when zooming in (happened during tests when building spaceship). */
+	float outerLeftMotorFlameTranslationZ  = -((motorHeight + currentLeftOuterMotorFlameDepth) / 2) + 0.01f;
+	float outerRightMotorFlameTranslationZ = -((motorHeight + currentRightOuterMotorFlameDepth) / 2) + 0.01f;
+	float innerLeftMotorFlameTranslationZ  = -(motorHeight / 2 + (currentLeftInnerMotorFlameDepth / 2)) + 0.01f;
+	float innerRightMotorFlameTranslationZ = -(motorHeight / 2 + (currentRightInnerMotorFlameDepth / 2)) + 0.01f;
 
 	/* Translations are applied to motors whose centers are at (0, 0, 0) before their transformation matrix is applied.
 	Since the flame transformation matrices are applied first, we only translate the 'Z' coordinate. Then, when the
 	motors will have their transformation matrices applied, the motors and the flames will move to the final place. */
-	_leftMotorOuterFlameTransformationMatrix = glm::translate(vec3(0, 0, outerLeftMotorFlameTranslationZ))
+	_leftMotorOuterFlameTransformationMatrix =
+		glm::translate(vec3(0, 0, outerLeftMotorFlameTranslationZ))
 		*
 		glm::scale(vec3(1.0f, 1.0f, leftOuterFlameDepthRatio));
 
-	_rightMotorOuterFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, outerRightMotorFlameTranslationZ))
+	_rightMotorOuterFlameTransformationMatrix =
+		glm::translate(vec3(0, 0, outerRightMotorFlameTranslationZ))
 		*
-		glm::scale(glm::mat4(), vec3(1.0f, 1.0f, rightOuterFlameDepthRatio));
+		glm::scale(vec3(1.0f, 1.0f, rightOuterFlameDepthRatio));
 
-	_leftMotorInnerFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, innerLeftMotorFlameTranslationZ))
+	_leftMotorInnerFlameTransformationMatrix = 
+		glm::translate(vec3(0, 0, innerLeftMotorFlameTranslationZ))
 		*
-		glm::scale(glm::mat4(), vec3(1.0f, 1.0f, leftInnerFlameDepthRatio));
+		glm::scale(vec3(1.0f, 1.0f, leftInnerFlameDepthRatio));
 
-	_rightMotorInnerFlameTransformationMatrix = glm::translate(glm::mat4(), vec3(0, 0, innerRightMotorFlameTranslationZ))
+	_rightMotorInnerFlameTransformationMatrix =
+		glm::translate(vec3(0, 0, innerRightMotorFlameTranslationZ))
 		*
-		glm::scale(glm::mat4(), vec3(1.0f, 1.0f, rightInnerFlameDepthRatio));
+		glm::scale(vec3(1.0f, 1.0f, rightInnerFlameDepthRatio));
 
 	/* If spaceship's going backward, flames are reversed (in front of motors), which is more logical than keeping them
-	behind them. */
-	if ((_direction & DIRECTION_BACKWARD) != 0)
+	   behind them. If going backward and right OR left, this simple inversion will also work. For example, if going
+	   backward and right, the left flame will be bigger than the right one. */
+	if (goingBackward)
 	{
 		_leftMotorOuterFlameTransformationMatrix = flipZ * _leftMotorOuterFlameTransformationMatrix;
 		_rightMotorOuterFlameTransformationMatrix = flipZ * _rightMotorOuterFlameTransformationMatrix;
@@ -374,24 +370,16 @@ void Spaceship::animateFlames()
 	}
 }
 
-/* Calculates the Z and Z positions of the spaceship. The direction is represented by different constants which all
-have a '1' at a different position (bit shift), and we can combine those constants combine directions, for example
-going FORWARD and going LEFT at the same time. We prevent being able to go FORWARD and BACKWARD at the same time.
-
-Known bug:
-    - Hold 'S' to go backward, spaceship goes backward
-	- Hold 'W' to go forward (but don't release 'S'), spaceship stops going backward and goes forward
-	- Release 'W' (but don't release 'S'), spaceship stops but does not go backward as expected.
-
-	The same thing holds if you first hold 'W', and then hold 'S' and release 'S' but keep holding 'W', same thing
-	also for left and right.
-*/
+/* Calculates the Z and X positions of the spaceship. Prevents spaceship from leaving screen. */
 void Spaceship::calculatePosition(double dt)
 {
+	/* Calculating current Z speed with current Z acceleration.*/
 	_speedZ = _speedZ + (_currentAccelerationZ * dt);
 
-	float dragEffectZ = _dragZ * dt;
+	/* The drag effects diminishes the acceleration or slows down the spaceship when there is no acceleration. */
+	double dragEffectZ = _dragZ * dt;
 
+	/* Applying drag effect to speed. No drag if speed is to change sign (speed becomes 0). */
 	if (dragEffectZ > abs(_speedZ))
 	{
 		_speedZ = 0;
@@ -401,18 +389,24 @@ void Spaceship::calculatePosition(double dt)
 		_speedZ -= sign(_speedZ) * dragEffectZ;
 	}
 
+	/* Checks speed against maximum speed. */
 	if (abs(_speedZ) > _maxSpeedZ)
 	{
 		_speedZ = sign(_speedZ) * _maxSpeedZ;
 	}
 
+	/* Calculates new Z position. */
 	_positionZ += _speedZ * dt;
 
+	/* Prevents the position from being outside the screen. */
 	if (_positionZ >= _maxPositionZ)
 	{
 		_positionZ = _maxPositionZ;
 
-		//if (sign(_speedZ) >= 0)
+		/* Only set speed to 0 if going forward or still (not moving). We do not want to set the speed to 0 if going
+		   backward. This can happen if we go all the way to _maxPositionZ, then stop, then press 'S' to go backward.
+		   Since we are at Z=_maxPositionZ, we must no set the speed to 0, otherwise the spaceship would never leave
+		   Z=_maxPositionZ. */
 		if (isGoingForward() || isStillZ())
 		{
 			_speedZ = 0;
@@ -422,20 +416,17 @@ void Spaceship::calculatePosition(double dt)
 	{
 		_positionZ = _minPositionZ;
 
-		//if (sign(_speedZ) <= 0)
+		/* Same logic as above but for minimum Z... */
 		if (isGoingBackward() || isStillZ())
 		{
 			_speedZ = 0;
 		}
 	}
 
-	// --- //
-
-	//_LOG_INFO() << "_speedX = " << _speedX << " + " << _currentAccelerationX << " * " << dt << " = " << _speedX << " + " << (_currentAccelerationX * dt);
-	
+	/* Same stuff for X speed and X position. */
 	_speedX = _speedX + (_currentAccelerationX * dt);
 
-	float dragEffectX = _dragX * dt;
+	double dragEffectX = _dragX * dt;
 
 	if (dragEffectX > abs(_speedX))
 	{
@@ -471,11 +462,46 @@ void Spaceship::calculatePosition(double dt)
 			_speedX = 0;
 		}
 	}
-	else if (isAcceleratingLeft() && _speedX > 0)
+
+	/* Checks if at the current speed the spaceship is going to hit screen limits (+Z, -Z, +X, -X). */
+	if (isAcceleratingForward() && _speedZ > 0)
 	{
-		float distanceToLeft = _maxPositionX - _positionX;
-		float timeUntilCollision = (float) distanceToLeft / (_speedX / 2);
-		float dragEffect = (float) _dragX * timeUntilCollision;
+		/* Distance between spaceship and _maxPositionZ. */
+		double distanceAhead = _maxPositionZ - _positionZ;
+
+		/* Time required to get to maxPositionZ starting with current speed, but ending with speed = 0 (explaining the
+		'/ 2' since d = [(v1 + v2) * t] / 2). */
+		double timeUntilCollision = (double) distanceAhead / (_speedZ / 2);
+
+		/* Drag effect for the time calculated above. */
+		double dragEffect = (double)_dragZ * timeUntilCollision;
+
+		/* Stop accelerating if the drag effect applied to current speed would result in a speed above 0. This way,
+		   the spaceship will slow down and stop at Z = _maxPositionZ. */
+		if (_speedZ - dragEffect > 0)
+		{
+			_currentAccelerationZ = 0;
+		}
+	}
+	else if (isAcceleratingBackward() && _speedZ < 0)
+	{
+		/* Same logic as above but for _minPositionZ. */
+		double distanceToBack     = _positionZ - _minPositionZ;
+		double timeUntilCollision = (double) distanceToBack / (abs(_speedZ) / 2);
+		double dragEffect         = (double) _dragZ * timeUntilCollision;
+
+		if (_speedZ + dragEffect < 0)
+		{
+			_currentAccelerationZ = 0;
+		}
+	}
+	
+	if (isAcceleratingLeft() && _speedX > 0)
+	{
+		/* Same logic as above but for _maxPositionX. */
+		double distanceToLeft     = _maxPositionX - _positionX;
+		double timeUntilCollision = (double) distanceToLeft / (_speedX / 2);
+		double dragEffect         = (double) _dragX * timeUntilCollision;
 
 		if (_speedX - dragEffect > 0)
 		{
@@ -484,130 +510,27 @@ void Spaceship::calculatePosition(double dt)
 	}
 	else if (isAcceleratingRight() && _speedX < 0)
 	{
-		float distanceToRight = _positionX - _minPositionX;
-		float timeUntilCollision = (float) distanceToRight / (abs(_speedX) / 2);
-		float dragEffect = (float) _dragX * timeUntilCollision;
+		/* Same logic as above but for _minPositionX. */
+		double distanceToRight    = _positionX - _minPositionX;
+		double timeUntilCollision = (double) distanceToRight / (abs(_speedX) / 2);
+		double dragEffect         = (double) _dragX * timeUntilCollision;
 
 		if (_speedX + dragEffect < 0)
 		{
 			_currentAccelerationX = 0;
 		}
 	}
-	else if (isAcceleratingForward() && _speedZ > 0)
-	{
-		
-		float distanceAhead = _maxPositionZ - _positionZ;
-		float timeUntilCollision = (float) distanceAhead / (_speedZ / 2);
-		float dragEffect = (float) _dragZ * timeUntilCollision;
-
-		if (_speedZ - dragEffect > 0)
-		{
-			_LOG_INFO() << "========================== DING !";
-			_currentAccelerationZ = 0;
-		}
-	}
-	else if (isAcceleratingBackward() && _speedZ < 0)
-	{
-		float distanceToBack = _positionZ - _minPositionZ;
-		float timeUntilCollision = (float) distanceToBack / (abs(_speedZ) / 2);
-		float dragEffect = (float) _dragZ * timeUntilCollision;
-
-		if (_speedZ + dragEffect < 0)
-		{
-			_currentAccelerationZ = 0;
-		}
-	}
-
-	//_LOG_INFO() << _positionZ;
-	// --- //
-	// before ...
-
-	return;
-
-	if (DIRECTION_NO_CHANGE == _direction)
-	{
-		/* Going nowhere */
-
-		return;
-	}
-
-	if ((_direction & DIRECTION_FORWARD) != 0)
-	{
-		/* Going forward */
-		_positionZ += _deltaZperSecond * dt;
-	}
-	else if ((_direction & DIRECTION_BACKWARD) != 0)
-	{
-		/* Going backward */
-		_positionZ -= _deltaZperSecond * dt;
-	}
-
-	if ((_direction & DIRECTION_LEFT) != 0)
-	{
-		/* Going left */
-		_positionX += _deltaXperSecond * dt;
-	}
-	else if ((_direction & DIRECTION_RIGHT) != 0)
-	{
-		/* Going right */
-		_positionX -= _deltaXperSecond * dt;
-	}
-
-	/* Below, bound checking */
-	if (_positionZ < 0)
-	{
-		/* Reached bottom limit */
-
-		_positionZ = 0;
-		
-		stopGoingBackward();
-	}
-	else if (_positionZ > 75)
-	{
-		/* Reached top limit */
-
-		_positionZ = 75;
-		
-		stopGoingForward();
-	}
-
-	if (_positionX < -15)
-	{
-		/* Reached right limit */
-
-		_positionX = -15;
-		
-		stopGoingRight();
-	}
-	else if(_positionX > 15)
-	{
-		/* Reached left limit */
-
-		_positionX = 15;
-
-		stopGoingLeft();
-	}
 }
 
-/* Below are methods which are called with certain keys (for example 'W' for 'FORWARD') to controle the spaceship
+/* Below are methods which are called with certain keys (for example 'W' for 'FORWARD') to control the spaceship
 direction. */
 
 void Spaceship::goForward()
 {
-	if (_positionZ >= _maxPositionZ)
-	{
-		//return;
-	}
-
 	_currentAccelerationZ = _accelerationZ;
-
-	/* If was going backward, stop that, let's go forward. */
-	if ((_direction & DIRECTION_BACKWARD) != 0)
-	{
-	//	stopGoingBackward();
-	}
-
-	_direction |= DIRECTION_FORWARD;
+	_goingForwardKeyDown  = true;
+	_forceForwardMotors   = true;
+	_forceBackwardMotors  = false;
 }
 
 void Spaceship::stopGoingForward()
@@ -617,26 +540,21 @@ void Spaceship::stopGoingForward()
 		_currentAccelerationZ = 0;
 	}
 
-	/* Setting the '1' in the constant equal to zero in '_direction' */
-	_direction = _direction & ~DIRECTION_FORWARD;
+	_goingForwardKeyDown = false;
+	_forceForwardMotors  = false;
 
-	_currentAccelerationZ = 0;
+	if (_goingBackwardKeyDown)
+	{
+		goBackward();
+	}
 }
 
 void Spaceship::goLeft()
 {
 	_currentAccelerationX = _accelerationX;
-
-	_stopAcceleratingX = (float) _stopAcceleratingFractionX * (_maxPositionX - max(_positionX, 0.0f));
-	//_LOG_INFO() << "stopAcc... = " << _stopAcceleratingX << " = " << _stopAcceleratingFractionX << " * (" << _maxPositionX << " - max(" << _positionX << ", 0.0f))";
-
-	/* If going right, stop going right, now going left. */
-	if ((_direction & DIRECTION_RIGHT) != 0)
-	{
-	//	stopGoingRight();
-	}
-
-	_direction |= DIRECTION_LEFT;
+	_goingLeftKeyDown     = true;
+	_forceLeftMotor       = true;
+	_forceRightMotor      = false;
 }
 
 void Spaceship::stopGoingLeft()
@@ -646,21 +564,21 @@ void Spaceship::stopGoingLeft()
 		_currentAccelerationX = 0;
 	}
 
-	/* Setting the '1' in the constant equal to zero in '_direction' */
-	_direction = _direction & ~DIRECTION_LEFT;
+	_goingLeftKeyDown   = false;
+	_forceLeftMotor     = false;
+
+	if (_goingRightKeyDown)
+	{
+		goRight();
+	}
 }
 
 void Spaceship::goRight()
 {
 	_currentAccelerationX = -_accelerationX;
-
-	/* If was going left, stop that, now going right. */
-	if ((_direction & DIRECTION_LEFT) != 0)
-	{
-	//	stopGoingLeft();
-	}
-
-	_direction |= DIRECTION_RIGHT;
+	_goingRightKeyDown    = true;
+	_forceRightMotor      = true;
+	_forceLeftMotor       = false;
 }
 
 void Spaceship::stopGoingRight()
@@ -670,28 +588,21 @@ void Spaceship::stopGoingRight()
 		_currentAccelerationX = 0;
 	}
 
-	/* Setting the '1' in the constant equal to zero in '_direction' */
-	_direction = _direction & ~DIRECTION_RIGHT;
+	_goingRightKeyDown = false;
+	_forceRightMotor   = false;
+
+	if (_goingLeftKeyDown)
+	{
+		goLeft();
+	}
 }
 
 void Spaceship::goBackward()
 {
-	_currentAccelerationZ = -_accelerationZ;
-
-	// TODO simplify, constants ...
-	if (_positionX <= 0)
-	{
-		//_LOG_INFO() << "= 0";
-		//return;
-	}
-
-	/* If was going forward, stop that, now going backward. */
-	if ((_direction & DIRECTION_FORWARD) != 0)
-	{
-		//stopGoingForward();
-	}
-
-	_direction |= DIRECTION_BACKWARD;
+	_currentAccelerationZ     = -_accelerationZ;
+	_goingBackwardKeyDown     = true;
+	_forceBackwardMotors      = true;
+	_forceForwardMotors       = false;
 }
 
 void Spaceship::stopGoingBackward()
@@ -701,8 +612,13 @@ void Spaceship::stopGoingBackward()
 		_currentAccelerationZ = 0;
 	}
 
-	/* Setting the '1' in the constant equal to zero in '_direction' */
-	_direction = _direction & ~DIRECTION_BACKWARD;
+	_goingBackwardKeyDown     = false;
+	_forceBackwardMotors      = false;
+
+	if (_goingForwardKeyDown)
+	{
+		goForward();
+	}
 }
 
 bool Spaceship::isGoingForward()
@@ -737,22 +653,22 @@ bool Spaceship::isStillX()
 
 bool Spaceship::isAcceleratingForward()
 {
-	return (sign(_currentAccelerationZ) > 0);
+	return ((sign(_currentAccelerationZ) > 0) && (_positionZ < _maxPositionZ));
 }
 
 bool Spaceship::isAcceleratingLeft()
 {
-	return (sign(_currentAccelerationX) > 0);
+	return ((sign(_currentAccelerationX) > 0) && (_positionX < _maxPositionX));
 }
 
 bool Spaceship::isAcceleratingRight()
 {
-	return (sign(_currentAccelerationX) < 0);
+	return ((sign(_currentAccelerationX) < 0) && (_positionX > _minPositionX));
 }
 
 bool Spaceship::isAcceleratingBackward()
 {
-	return (sign(_currentAccelerationZ) < 0);
+	return ((sign(_currentAccelerationZ) < 0) && (_positionZ > _minPositionZ));
 }
 
 bool Spaceship::isNotAcceleratingZ()

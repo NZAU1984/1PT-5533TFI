@@ -44,12 +44,9 @@ protected:
 	Box leftFin;
 	Box rightFin;
 
-	float angle;
+	double _motorAngle;
 
-	// TODO delete
-	float _connectorAngle;
-
-	float _motorAngle;
+	double _maxMotorAngleDeltaPerSecond = glm::pi<double>();
 
 	glm::mat4 _leftMotorTransformationMatrix;
 	glm::mat4 _rightMotorTransformationMatrix;
@@ -59,64 +56,62 @@ protected:
 	glm::mat4 _leftMotorInnerFlameTransformationMatrix;
 	glm::mat4 _rightMotorInnerFlameTransformationMatrix;
 
-	uint DIRECTION_NO_CHANGE = 0;
-	uint DIRECTION_FORWARD = 1 << 0;
-	uint DIRECTION_LEFT = 1 << 1;
-	uint DIRECTION_RIGHT = 1 << 2;
-	uint DIRECTION_BACKWARD = 1 << 3;
+	bool _goingForwardKeyDown  = false;
+	bool _goingLeftKeyDown     = false;
+	bool _goingRightKeyDown    = false;
+	bool _goingBackwardKeyDown = false;
 
-	uint _direction = DIRECTION_NO_CHANGE;
+	bool _forceForwardMotors    = false;
+	bool _forceLeftMotor        = false;
+	bool _forceRightMotor       = false;
+	bool _forceBackwardMotors   = false;
 
-	float _positionZ = 0;
+	double _positionZ = 0;
 
-	float _positionX = 0;
+	double _positionX = 0;
 
-	const float _minPositionZ = 0;
-	const float _maxPositionZ = 75;
+	const double _minPositionZ = 0;
+	const double _maxPositionZ = 75;
 
-	const float _minPositionX = -15;
-	const float _maxPositionX = 15;
+	const double _minPositionX = -15;
+	const double _maxPositionX = 15;
 
-	float _minStopAcceleratingX = 0;
-	float _maxStopAcceleratingX = 0;
+	double _minStopAcceleratingX = 0;
+	double _maxStopAcceleratingX = 0;
 
-	float _minStopAcceleratingZ = 0;
-	float _maxStopAcceleratingZ = 0;
+	double _minStopAcceleratingZ = 0;
+	double _maxStopAcceleratingZ = 0;
 
-	float _stopAcceleratingX = 0;
-	float _stopAcceleratingZ = 0;
+	double _stopAcceleratingX = 0;
+	double _stopAcceleratingZ = 0;
 
-	float _stopAcceleratingFractionX = 6.0f / 15;
-	float _stopAcceleratingFractionZ = 6.0f / 15;
+	double _speedZ = 0;
 
+	double _speedX = 0;
 
-	float _speedZ = 0;
+	const double _maxSpeedZ = 50;
 
-	float _speedX = 0;
+	const double _maxSpeedX = 25;
 
-	const float _maxSpeedZ = 50;
+	const double _accelerationZ = 25;
 
-	const float _maxSpeedX = 25;
+	const double _accelerationX = 25;
 
-	const float _accelerationZ = 25;
+	double _currentAccelerationZ = 0;
 
-	const float _accelerationX = 25;
+	double _currentAccelerationX = 0;
 
-	float _currentAccelerationZ = 0;
+	double _dragZ = 10;
 
-	float _currentAccelerationX = 0;
+	double _dragX = 10;
 
-	float _dragZ = 10;
+	double _maxMotorAngle = glm::pi<double>() / 6;
 
-	float _dragX = 10;
+	double _deltaZperSecond = 25;
 
-	float _maxMotorAngle = glm::pi<float>() / 6;
+	double _deltaXperSecond = 15;
 
-	float _deltaZperSecond = 25;
-
-	float _deltaXperSecond = 15;
-
-	void animateMotors();
+	void animateMotors(double dt);
 
 	void animateFlames();
 
