@@ -706,4 +706,16 @@ bool Spaceship::isNotAcceleratingX()
 	return (sign(_currentAccelerationX) == 0);
 }
 
+std::vector<glm::vec3> Spaceship::getPosition()
+{
+	std::vector<glm::vec3> theVector;
+
+	theVector.push_back(vec3(0, 0, 0));
+	theVector.push_back(vec3(1, 1, 1));
+	theVector.push_back(vec3(2, 2, 2));
+	theVector.push_back(vec3(3, 3, 3));
+
+	return theVector;
+}
+
 

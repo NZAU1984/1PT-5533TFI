@@ -6,6 +6,8 @@
 
 #include "BoundingBox.h"
 
+#include "Projectile.h"
+
 #include <list>
 
 using namespace glm;
@@ -18,6 +20,8 @@ public:
 	virtual ~ThreeDObject();
 
 	bool checkCollisionWith(ThreeDObject& otherObject);
+
+	bool checkCollisionWithProjectile(Projectile& projectile);
 
 protected:
 	BoundingBox* _boundingBox = NULL;

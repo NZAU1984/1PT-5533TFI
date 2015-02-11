@@ -33,3 +33,13 @@ void Projectile::render(double dt)
 	_outerSphere.Render();
 	_innerSphere.Render();
 }
+
+glm::vec3 Projectile::getPosition()
+{
+	return glm::vec3(_positionX, _positionY, _positionZ);
+}
+
+glm::vec3 Projectile::getOrientationVector()
+{
+	return glm::vec3(_dx, _dy, _dz);
+}

@@ -6,6 +6,8 @@
 
 #include "ThreeDObject.h"
 
+#include <vector>
+
 
 using namespace glm;
 
@@ -27,6 +29,8 @@ public:
 	void stopGoingLeft();
 	void stopGoingRight();
 	void stopGoingBackward();
+
+	std::vector<glm::vec3> getPosition();
 
 protected:
 	// TODO add underscores...

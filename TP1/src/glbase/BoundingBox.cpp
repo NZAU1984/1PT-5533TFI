@@ -45,4 +45,19 @@ bool BoundingBox::checkCollision(BoundingBox* otherBox)
 	return true;
 }
 
+bool BoundingBox::containsPoint(glm::vec3* point)
+{
+	if (
+		(_maxZ < point->z)
+		|| (_minZ > point->z)
+		|| (_maxX < point->x)
+		|| (_minX > point->x)
+		|| (_maxY < point->y)
+		|| (_minY > point->y)
+		)
+	{
+		return false;
+	}
 
+	return true;
+}

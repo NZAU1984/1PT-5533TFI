@@ -13,6 +13,8 @@ public:
 
 	bool checkCollision(BoundingBox* otherBox);
 
+	bool containsPoint(glm::vec3* point);
+
 protected:
 	/* Using vec4 and not vec3 to store vertices because it's simplier this way to apply transformation matrices.
 	   Otherwise it requires to convert a vec3 to a vec3 and then convert that vec4 to a vec3. */

@@ -1,7 +1,14 @@
 #include "DummyEnemy.h"
 
+glm::mat4 lalala {
+	1, 0, 0, 0,
+	-0.5f, 1, 0.5f, 0, // x = x - 0.5y ; z = z + 0.5y
+	0, 0, 1, 0,
+	0, 0, 0, 1
+};
+
 DummyEnemy::DummyEnemy(double x, double y, double z, double dx, double dy, double dz) :
-	_box(vec4(1, 1, 1, 1.0f), glm::scale(glm::mat4(), glm::vec3(10.0f, 10.0f, 10.0f))),
+	_box(vec4(1, 1, 1, 1.0f), lalala * glm::scale(glm::mat4(), glm::vec3(10.0f, 10.0f, 10.0f))),
 	_positionX(x),
 	_positionY(y),
 	_positionZ(z),

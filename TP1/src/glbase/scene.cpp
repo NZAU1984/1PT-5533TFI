@@ -100,7 +100,8 @@ float Shape::getMaxZ()
 
 /* Applies an initial transformation matrix to (try to) reduce a tiny bit the number of calculations at each frame
 rendering. Also, it calculates the min/max X, Y, Z used to determine the bouncing box. */
-void Shape::applyTransformatioMatrixAndCreateBoundingBox(VertexPositionNormal* vertices, uint nVertices, const glm::mat4& transformationMatrix)
+void Shape::applyTransformatioMatrixAndDefineMinMaxXYZ(VertexPositionNormal* vertices, uint nVertices,
+	const glm::mat4& transformationMatrix)
 {
 	/* We have to adapt normals, but only some cases, for example, a rotation. If we shear a shape, we must
 	NOT modify the normals. The following line was taken from
@@ -229,8 +230,18 @@ Box::Box(vec4 color, const mat4& initialTransformationMatrix)
 	}
 
 	/* Modification from original code. Applies an initial transformation matrix. */
-	applyTransformatioMatrixAndCreateBoundingBox(vertices, 36, initialTransformationMatrix);
+	applyTransformatioMatrixAndDefineMinMaxXYZ(vertices, 36, initialTransformationMatrix);
 
+	/* Defining 8 vertices */
+	_vertices[0] = initialTransformationMatrix * vec4(0.5f, 0.5f, -0.5f, 1); // left top back
+	_vertices[1] = initialTransformationMatrix * vec4(0.5f, -0.5f, -0.5f, 1); // left bottom back
+	_vertices[2] = initialTransformationMatrix * vec4(-0.5f, 0.5f, -0.5f, 1); // right top back
+	_vertices[3] = initialTransformationMatrix * vec4(-0.5f, -0.5f, -0.5f, 1); // right bottom back
+	_vertices[4] = initialTransformationMatrix * vec4(-0.5f, 0.5f, 0.5f, 1); // right top front
+	_vertices[5] = initialTransformationMatrix * vec4(-0.5f, -0.5f, 0.5f, 1); // right bottom front
+	_vertices[6] = initialTransformationMatrix * vec4(0.5f, 0.5f, 0.5f, 1); // left top front
+	_vertices[7] = initialTransformationMatrix * vec4(0.5f, -0.5f, 0.5f, 1); // left bottom front
+	
 	// Create Vertex Array Object
 	glGenVertexArrays(1, &_vao);
 	glBindVertexArray(_vao);
@@ -257,11 +268,120 @@ void Box::Render()
 {
 	Shape::Render();
 
+	_verticesWereRecalculated = false;
+
 	glBindVertexArray(_vao);
 	
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	glBindVertexArray(0);
+}
+
+void Box::_transformVertices()
+{
+	if (!_verticesWereRecalculated)
+	{
+		_currentVertices[0] = vec3(_transform * _vertices[0]); // left top back
+		_currentVertices[1] = vec3(_transform * _vertices[1]); // left bottom back
+		_currentVertices[2] = vec3(_transform * _vertices[2]); // right top back
+		_currentVertices[3] = vec3(_transform * _vertices[3]); // right bottom back
+		_currentVertices[4] = vec3(_transform * _vertices[4]); // right top front
+		_currentVertices[5] = vec3(_transform * _vertices[5]); // right bottom front
+		_currentVertices[6] = vec3(_transform * _vertices[6]); // left top front
+		_currentVertices[7] = vec3(_transform * _vertices[7]); // left bottom front
+
+		_verticesWereRecalculated = true;
+	}
+}
+
+bool Box::containsPoint(glm::vec3 point, glm::vec3 orientation)
+{
+	_transformVertices();
+
+	bool returnValue = false;
+
+	glm::vec3* firstIntersection  = NULL;
+	glm::vec3* secondIntersection = NULL;
+
+	for (int i = 0; i < 8; i += 2)
+	{
+		glm::vec3* intersection = new vec3(123, 0, 0);
+
+		if (_parallelogramContainsPoint(point, orientation, _currentVertices[i], _currentVertices[i + 1],
+			_currentVertices[(i + 2) % 8], _currentVertices[(i + 3) % 8], *intersection))
+		{		
+			if (firstIntersection == NULL)
+			{
+				firstIntersection = intersection;
+			}
+			else
+			{
+				secondIntersection = intersection;
+
+				break;
+			}
+		}
+		else
+		{
+			delete intersection;
+		}
+
+	}
+
+	if (firstIntersection != NULL && secondIntersection != NULL)
+	{
+		float distAB = sqrt(glm::dot(*secondIntersection - *firstIntersection, *secondIntersection - *firstIntersection));
+		float distPA = sqrt(glm::dot(point - *firstIntersection, point - *firstIntersection));
+		float distPB = sqrt(glm::dot(point - *secondIntersection, point - *secondIntersection));
+
+		if (abs(distAB - distPA - distPB) < 0.0001f)
+		{
+			returnValue = true;
+		}
+	}
+
+	delete firstIntersection;
+	delete secondIntersection;
+
+	return returnValue;
+}
+
+bool Box::_parallelogramContainsPoint(glm::vec3 P, glm::vec3 direction, glm::vec3 A, glm::vec3 B, glm::vec3 C, glm::vec3 D, glm::vec3& intersection)
+{
+	glm::vec3 perpVec = glm::normalize(glm::cross(B - A, C - A));
+
+	if (glm::dot(direction, perpVec) == 0)
+	{
+		return false;
+	}
+
+	float t = (perpVec.x * A.x + perpVec.y * A.y + perpVec.z * A.z - perpVec.x * P.x - perpVec.y * P.y - perpVec.z * P.z)
+		/ (perpVec.x * direction.x + perpVec.y * direction.y + perpVec.z * direction.z);
+
+	glm::vec3 P1(P.x + direction.x * t, P.y + direction.y * t, P.z + direction.z * t);	
+
+	glm::vec3 AB_x_AC = glm::cross(B - A, C - A);
+
+	float parallelogramVolume = sqrt(glm::dot(AB_x_AC, AB_x_AC));
+
+	vec3 PAxAB = glm::cross(P1 - A, A - B);
+	vec3 PBxBD = glm::cross(P1 - B, B - D);
+	vec3 PDxDC = glm::cross(P1 - D, D - C);
+	vec3 PCxCA = glm::cross(P1 - C, C - A);
+
+	float volume = sqrt(glm::dot(PAxAB, PAxAB)) / 2 + sqrt(glm::dot(PBxBD, PBxBD)) / 2 + sqrt(glm::dot(PDxDC, PDxDC)) / 2
+		+ sqrt(glm::dot(PCxCA, PCxCA)) / 2;
+	
+	if (abs(volume - parallelogramVolume) < 0.0001f)
+	{
+		intersection.x = P1.x;
+		intersection.y = P1.y;
+		intersection.z = P1.z;
+
+		return true;
+	}
+
+	return false;
 }
 
 #pragma endregion
@@ -414,7 +534,7 @@ Sphere::Sphere(vec4 color, uint nUpperStacks, uint nSlices, float radius, const 
 
 	/* Applies an initial transformation matrix on every vertex. Won't do anything if it is an identity matrix (which
 	is what we get when the parameter is not specified since it's optional). */
-	applyTransformatioMatrixAndCreateBoundingBox(vertices, nVertices, initialTransformationMatrix);
+	applyTransformatioMatrixAndDefineMinMaxXYZ(vertices, nVertices, initialTransformationMatrix);
 
 	// Create Vertex Array Object
 	glGenVertexArrays(1, &_vao);
@@ -466,6 +586,11 @@ void Sphere::Render()
 	glDrawElements(GL_TRIANGLES, _vertexOrderVectorSize, GL_UNSIGNED_INT, 0);
 
 	glBindVertexArray(0);
+}
+
+bool Sphere::containsPoint(glm::vec3 point, glm::vec3 orientation)
+{
+	return false;
 }
 
 bool Sphere::collisionDetected(const Sphere& sphereShape) const
@@ -562,7 +687,7 @@ _offsetBottom(nSlices * 3 + 3)
 
 	/* Applies an initial transformation matrix on every vertex. Won't do anything if it is an identity matrix (which
 	is what we get when the parameter is not specified since it's optional). */
-	applyTransformatioMatrixAndCreateBoundingBox(vertices, nVertices, initialTransformationMatrix);
+	applyTransformatioMatrixAndDefineMinMaxXYZ(vertices, nVertices, initialTransformationMatrix);
 
 	// Create Vertex Array Object
 	glGenVertexArrays(1, &_vao);
@@ -607,6 +732,11 @@ void Cylinder::Render()
 	glDrawArrays(GL_TRIANGLE_FAN, _offsetBottom, _nSlices);
 
 	glBindVertexArray(0);
+}
+
+bool Cylinder::containsPoint(glm::vec3 point, glm::vec3 orientation)
+{
+	return false;
 }
 
 #pragma endregion

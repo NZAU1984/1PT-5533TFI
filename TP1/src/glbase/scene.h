@@ -40,6 +40,8 @@ public:
 	void color(const vec4& v) { _color = v; }
 	const vec4& color() const { return _color; }
 
+	virtual bool containsPoint(glm::vec3 point, glm::vec3 orientation) = 0;
+
 	float getMinX();
 	float getMaxX();
 	float getMinY();
@@ -50,7 +52,7 @@ public:
 protected:
 	/* Used in shapes (like Sphere and Cylinder) to initially apply a transformation matrix on vertices created in the
 	constructor to avoid applying that same transformation every time a frame is created. */
-	void applyTransformatioMatrixAndCreateBoundingBox(VertexPositionNormal* vertices, uint nVertices, const glm::mat4& transformationMatrix);
+	void applyTransformatioMatrixAndDefineMinMaxXYZ(VertexPositionNormal* vertices, uint nVertices, const glm::mat4& transformationMatrix);
 
 	float _minX;
 	float _maxX;
@@ -66,6 +68,7 @@ protected:
 	GLuint _vertexBuffer, _indexBuffer, _vao;
 	
 	vec4 _color;
+
 };
 
 class Box : public Shape
@@ -75,6 +78,37 @@ public:
 	Box(vec4 color, const mat4& initialTransformationMatrix = glm::mat4());
 
 	virtual void Render() override;
+
+	bool containsPoint(glm::vec3 point, glm::vec3 orientation);
+
+protected:
+	vec4 _leftTopFrontVertex;
+	vec4 _leftTopBackVertex;
+	vec4 _rightTopBackVertex;
+	vec4 _rightTopFrontVertex;
+	vec4 _leftBottomFrontVertex;
+	vec4 _leftBottomBackVertex;
+	vec4 _rightBottomBackVertex;
+	vec4 _rightBottomFrontVertex;
+
+	vec4 _vertices[8];
+
+	vec4 _currentLeftTopFrontVertex;
+	vec4 _currentLeftTopBackVertex;
+	vec4 _currentRightTopBackVertex;
+	vec4 _currentRightTopFrontVertex;
+	vec4 _currentLeftBottomFrontVertex;
+	vec4 _currentLeftBottomBackVertex;
+	vec4 _currentRightBottomBackVertex;
+	vec4 _currentRightBottomFrontVertex;
+
+	vec3 _currentVertices[8];
+
+	bool _verticesWereRecalculated = false;
+
+	void _transformVertices();
+
+	bool _parallelogramContainsPoint(glm::vec3 P, glm::vec3 orientation, glm::vec3 A, glm::vec3 B, glm::vec3 C, glm::vec3 D, ::vec3& intersection);
 };
 
 /*
@@ -100,6 +134,8 @@ public:
 
 	float getRadius() const;
 
+	bool containsPoint(glm::vec3 point, glm::vec3 orientation);
+
 protected:
 	/* Number of stacks and, for each stack, number of slices (vertices). */
 	//uint _nStacks, _nSlices;
@@ -116,6 +152,8 @@ public:
 
 	/* Rendering method. */
 	virtual void Render() override;
+
+	bool containsPoint(glm::vec3 point, glm::vec3 orientation);
 
 protected:
 	uint _nSlices, _nTrianglesOnSide, _offsetTop, _offsetSide, _offsetBottom;

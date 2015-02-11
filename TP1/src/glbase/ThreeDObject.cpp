@@ -62,3 +62,18 @@ bool ThreeDObject::checkCollisionWith(ThreeDObject& otherObject)
 {
 	return _getBoundingBox()->checkCollision(otherObject._getBoundingBox());
 }
+
+bool ThreeDObject::checkCollisionWithProjectile(Projectile& projectile)
+{
+	for (std::list<Shape*>::const_iterator it = _shapeList.begin(), itEnd = _shapeList.end(); it != itEnd; ++it)
+	{
+		bool containsPoint = (*it)->containsPoint(projectile.getPosition(), projectile.getOrientationVector());
+
+		if (containsPoint)
+		{
+			_LOG_INFO() << "$$ collision with shape $$";
+		}
+	}
+
+	return false;
+}
