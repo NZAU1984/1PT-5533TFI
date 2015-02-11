@@ -3,6 +3,8 @@
 #include "core.h"
 #include "scene.h"
 #include "spaceship.h"
+#include "DummyEnemy.h"
+#include "Projectile.h"
 
 class CoreTP1 : public Core
 {
@@ -18,11 +20,7 @@ protected:
 	virtual void OnKeyD(bool down) override;
 
 protected:
-	/*Box mainBox, leftConnector, rightConnector;// ,// b2;
-	Sphere sphere, sphere1;
-	Cylinder cylinder, cylinder1;*/
-
-	Sphere centerSphere;
 	Spaceship spaceship;
-	float f;
+	DummyEnemy dummyEnemy;
+	Projectile projectile;
 };

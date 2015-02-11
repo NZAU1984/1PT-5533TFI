@@ -68,17 +68,40 @@ void Shape::Render()
 	}
 }
 
+float Shape::getMinX()
+{
+	return _minX;
+}
+
+float Shape::getMaxX()
+{
+	return _maxX;
+}
+
+float Shape::getMinY()
+{
+	return _minY;
+}
+
+float Shape::getMaxY()
+{
+	return _maxY;
+}
+
+float Shape::getMinZ()
+{
+	return _minZ;
+}
+
+float Shape::getMaxZ()
+{
+	return _maxZ;
+}
+
 /* Applies an initial transformation matrix to (try to) reduce a tiny bit the number of calculations at each frame
 rendering. Also, it calculates the min/max X, Y, Z used to determine the bouncing box. */
-void Shape::applyTransformatioMatrix(VertexPositionNormal* vertices, uint nVertices, const glm::mat4& transformationMatrix)
+void Shape::applyTransformatioMatrixAndCreateBoundingBox(VertexPositionNormal* vertices, uint nVertices, const glm::mat4& transformationMatrix)
 {
-	float minX = vertices[0].position.x,
-		maxX = vertices[0].position.x,
-		minY = vertices[0].position.y,
-		maxY = vertices[0].position.y,
-		minZ = vertices[0].position.z,
-		maxZ = vertices[0].position.z;
-
 	/* We have to adapt normals, but only some cases, for example, a rotation. If we shear a shape, we must
 	NOT modify the normals. The following line was taken from
 	http://www.arcsynthesis.org/gltut/Illumination/Tut09%20Normal%20Transformation.html */
@@ -94,9 +117,26 @@ void Shape::applyTransformatioMatrix(VertexPositionNormal* vertices, uint nVerti
 		vec4 currentVertexNormal            = vec4(currentVertex->normal, 1);			
 		currentVertex->position             = vec3(transformationMatrix * currentVertexPosition);
 		currentVertex->normal               = glm::normalize(vec3(normalTransformationMatrix * currentVertexNormal));
-	}
 
-	_LOG_INFO() << "minX=" << minX << ", maxX=" << maxX << ", minY=" << minY << ", maxY=" << maxY << ", minZ=" << minZ << ", maxZ=" << maxZ;
+		if (i == 0)
+		{
+			_minX = currentVertex->position.x;
+			_maxX = currentVertex->position.x;
+			_minY = currentVertex->position.y;
+			_maxY = currentVertex->position.y;
+			_minZ = currentVertex->position.z;
+			_maxZ = currentVertex->position.z;
+		}
+		else
+		{
+			_minX = min(_minX, currentVertex->position.x);
+			_minY = min(_minY, currentVertex->position.y);
+			_minZ = min(_minZ, currentVertex->position.z);
+			_maxX = max(_maxX, currentVertex->position.x);
+			_maxY = max(_maxY, currentVertex->position.y);
+			_maxZ = max(_maxZ, currentVertex->position.z);
+		}
+	}
 }
 
 glm::vec3 Shape::getCenterVector() const
@@ -120,16 +160,8 @@ Shape::~Shape()
 
 #pragma region BOX
 
-/*Box::Box(vec4 color)
-{
-	glm::mat4 dummyMatrix;
-	Box(color, dummyMatrix);
-}*/
-/* Constructs a cube with a color corresponding to 'color' and applies to it an initial transformation matrix (optional
-parameter). */
 Box::Box(vec4 color, const mat4& initialTransformationMatrix)
 {
-	_LOG_INFO() << "blablabla ; " << color[0] << ", " << color[1] << ", " << color[2];
 	_vertexBuffer = _indexBuffer = BAD_BUFFER;
 
 	_color = color;
@@ -197,7 +229,7 @@ Box::Box(vec4 color, const mat4& initialTransformationMatrix)
 	}
 
 	/* Modification from original code. Applies an initial transformation matrix. */
-	applyTransformatioMatrix(vertices, 36, initialTransformationMatrix);
+	applyTransformatioMatrixAndCreateBoundingBox(vertices, 36, initialTransformationMatrix);
 
 	// Create Vertex Array Object
 	glGenVertexArrays(1, &_vao);
@@ -382,7 +414,7 @@ Sphere::Sphere(vec4 color, uint nUpperStacks, uint nSlices, float radius, const 
 
 	/* Applies an initial transformation matrix on every vertex. Won't do anything if it is an identity matrix (which
 	is what we get when the parameter is not specified since it's optional). */
-	applyTransformatioMatrix(vertices, nVertices, initialTransformationMatrix);
+	applyTransformatioMatrixAndCreateBoundingBox(vertices, nVertices, initialTransformationMatrix);
 
 	// Create Vertex Array Object
 	glGenVertexArrays(1, &_vao);
@@ -530,7 +562,7 @@ _offsetBottom(nSlices * 3 + 3)
 
 	/* Applies an initial transformation matrix on every vertex. Won't do anything if it is an identity matrix (which
 	is what we get when the parameter is not specified since it's optional). */
-	applyTransformatioMatrix(vertices, nVertices, initialTransformationMatrix);
+	applyTransformatioMatrixAndCreateBoundingBox(vertices, nVertices, initialTransformationMatrix);
 
 	// Create Vertex Array Object
 	glGenVertexArrays(1, &_vao);

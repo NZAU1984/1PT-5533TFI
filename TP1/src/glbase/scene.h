@@ -40,10 +40,26 @@ public:
 	void color(const vec4& v) { _color = v; }
 	const vec4& color() const { return _color; }
 
+	float getMinX();
+	float getMaxX();
+	float getMinY();
+	float getMaxY();
+	float getMinZ();
+	float getMaxZ();
+
 protected:
 	/* Used in shapes (like Sphere and Cylinder) to initially apply a transformation matrix on vertices created in the
 	constructor to avoid applying that same transformation every time a frame is created. */
-	void applyTransformatioMatrix(VertexPositionNormal* vertices, uint nVertices, const glm::mat4& transformationMatrix);
+	void applyTransformatioMatrixAndCreateBoundingBox(VertexPositionNormal* vertices, uint nVertices, const glm::mat4& transformationMatrix);
+
+	float _minX;
+	float _maxX;
+	float _minY;
+	float _maxY;
+	float _minZ;
+	float _maxZ;
+
+	//BoundingBox* _boundingBox;
 
 	glm::vec3 getCenterVector() const;
 

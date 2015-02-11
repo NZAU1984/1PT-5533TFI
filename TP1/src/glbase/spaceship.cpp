@@ -155,7 +155,6 @@ glm::mat4 leftFinTransformationMatrix =
    mainBody shape (a Box) is translated. We can then avoid applying a transformation matrix to them at every frame
    rendering, so we apply initial transformation matrices (shear transformation and translation) to the right here. */
 Spaceship::Spaceship() :
-
 	mainBody(mainBodyColor, mainBodyTransformationMatrix),
 
 	leftConnector(connectorColor, leftConnectorTransformationMatrix),
@@ -197,11 +196,29 @@ Spaceship::Spaceship() :
 	mainBody.AddChild(&rightConnector);
 
 	mainBody.AddChild(&trunk);
+
+	_addShapeToList(&mainBody);
+	_addShapeToList(&trunk);
+	_addShapeToList(&leftFin);
+	_addShapeToList(&rightFin);
+	_addShapeToList(&leftConnector);
+	_addShapeToList(&rightConnector);
+	_addShapeToList(&leftMotor);
+	_addShapeToList(&rightMotor);
+	_addShapeToList(&leftMotorOuterFlame);
+	_addShapeToList(&leftMotorInnerFlame);
+	_addShapeToList(&rightMotorOuterFlame);
+	_addShapeToList(&rightMotorInnerFlame);
+
+	_defineBoundingBox();
 }
 
 /* Called every time a frame is rendered. */
 void Spaceship::render(double dt)
 {
+	double positionXCopy = _positionX;
+	double positionZCopy = _positionZ;
+
 	calculatePosition(dt);
 
 	animateMotors(dt);
@@ -221,6 +238,8 @@ void Spaceship::render(double dt)
 	/* Finally, applying transformation matrix to mainBody (the main parent) to move the spaceship to calculated
 	   X and Z positions. */
 	mainBody.SetTransform(glm::translate(vec3(_positionX, 0, _positionZ)));
+
+	_translateBoundingBox(_positionX - positionXCopy, 0, _positionZ - positionZCopy);
 
 	/*Rendering shapes. */
 
@@ -242,6 +261,11 @@ void Spaceship::render(double dt)
 
 	leftMotorInnerFlame.Render();
 	rightMotorInnerFlame.Render();
+}
+
+Spaceship::~Spaceship()
+{
+
 }
 
 /* Adapts the motor angles according to X speed and reverses that angle if spaceship is accelerating/moving backward.*/
@@ -275,6 +299,7 @@ void Spaceship::animateMotors(double dt)
 		_motorAngle = _maxMotorAngle * sign(_motorAngle);
 	}
 
+	// TODO should be global variables since don't change
 	/* Calculate X and Z translation to keep center aligned at the right spot. */
 	motorTranslationX = connectorTranslationX + connectorWidthAfterShear / 2 - connectorWidth / 2
 		- connectorSpaceVisibleUnderMotor / 2;

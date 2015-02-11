@@ -2,6 +2,17 @@
 
 #include "glm/gtx/transform2.hpp"
 
+#include <sstream>
+#include <string>
+
+std::string printVec3(glm::vec3 vec)
+{
+	std::stringstream ss;
+	ss << "(" << vec[0] << ", " << vec[1] << ", " << vec[2] << ")";
+
+	return ss.str();
+}
+
 /*
  * 'CoreTP1' is a super class of 'Core' (CoreTP1 extends Core)
  *
@@ -16,17 +27,8 @@
  */
 CoreTP1::CoreTP1() :
 	Core(),
-	//spaceship(),
-	//mainBox(vec4(1, 0, 0, 1.0f), glm::scale(glm::mat4(), vec3(1,1,3))),
-	//leftConnector(vec4(0, 1, 0, 1.0f), glm::scale(glm::rotate(glm::rotate(glm::mat4(), glm::pi<float>() / 2, vec3(1,0,0)), glm::pi<float>()/6, vec3(0,1,0)), vec3(0.3f, 1, 2))),
-	//rightConnector(vec4(0, 1, 0, 1.0f), glm::scale(glm::rotate(glm::rotate(glm::mat4(), glm::pi<float>() / 2, vec3(1, 0, 0)), -glm::pi<float>() / 6, vec3(0, 1, 0)), vec3(0.3f, 1, 2))),
-	//b2(vec4(0, 1, 0, 1)),
-	centerSphere(vec4(1.0f, 0.5f, 0, 1), 100, 100, 1, glm::scale(glm::mat4(), vec3(0.1f,0.1f,0.1f))), //glm::scale(glm::mat4(), glm::vec3(1,0.5,0.5))),
-	//sphere1(vec4(1.0f, 0.5f, 0, 1), 100, 100, 1, glm::scale(glm::mat4(), vec3(1, 1, 1))),
-	//cylinder(vec4(0, 1.0f, 1.0f, 1), 100, 2.5f, 0.2f, glm::rotate(glm::mat4(), glm::pi<float>() / 2, vec3(1, 0, 0))),//, ),
-	//cylinder1(vec4(0, 1.0f, 1.0f, 1), 100, 2.5f, 0.2f, glm::rotate(glm::mat4(), glm::pi<float>() / 2, vec3(1, 0, 0))),
-	//cylinder1(vec4(1.0f, 1.0f, 1.0f, 1), 100, 3.5f, 0.2f),//, glm::rotate(glm::mat4(), glm::pi<float>()/4, vec3(1,1,1))), // glm::mat4()), //glm::rotate(glm::mat4(), glm::pi<float>() / 2, vec3(0, 0, 1))),
-	f(0)
+	dummyEnemy(0, 0, 50, 0, 0, -1),
+	projectile(0, 0, 0, 0, 0, 5)
 {
 	/* '_viewMatrix' defined in 'core.h' with type 'glm::mat4'
 	 * It is a protected property of 'Core' (the superclass of the current class)
@@ -40,73 +42,77 @@ CoreTP1::CoreTP1() :
 	 * */
 	// default = 0, 3, -6 ... 0,0,0 .. 0,1,0
 	_viewMatrix = glm::lookAt(glm::vec3(0, 45, -25), glm::vec3(0, 0, 20), glm::vec3(0, 1, 0));
-	//_viewMatrix = glm::lookAt(glm::vec3(0, 13*2, -14*2), glm::vec3(0, 0, 3*6), glm::vec3(0, 1, 0));
-	//_viewMatrix = glm::lookAt(glm::vec3(0, 0, -6), glm::vec3(0, 0, 0), glm::vec3(0, 1, 1));
 
-	//b.AddChild(&b2);
-	//b.AddChild(&sphere);
+	// TEMP
 
-	//sphere.AddChild(&cylinder);
-	//sphere.AddChild(&cylinder1);
+	float threshold = 0.0001f;
 
-	//mainBox.AddChild(&leftConnector);
-	//mainBox.AddChild(&rightConnector);
+	vec3 P(6, 6.5f, 0.5f);
+
+	vec3 A(5, 6, 0);
+	vec3 B(7, 6, 0);
+	vec3 C(6, 7, 1);
+	vec3 D(8, 7, 1);
+
+	vec3 ABxAD = glm::cross(A - B, A - D);
+	vec3 ACxAD = glm::cross(A - C, A - D);
+
+	vec3 PAxAB = glm::cross(P - A, A - B);
+	vec3 PBxBD = glm::cross(P - B, B - D);
+	vec3 PDxDC = glm::cross(P - D, D - C);
+	vec3 PCxCA = glm::cross(P - C, C - A);
+
+	float vol = sqrt(glm::dot(PAxAB, PAxAB)) / 2 + sqrt(glm::dot(PBxBD, PBxBD)) / 2 + sqrt(glm::dot(PDxDC, PDxDC)) / 2
+		+ sqrt(glm::dot(PCxCA, PCxCA)) / 2;
+
+	float volume = sqrt(glm::dot(ABxAD, ABxAD))/2 + sqrt(glm::dot(ACxAD, ACxAD))/2;
+
+	if (abs(vol - volume) < threshold)
+	{
+		_LOG_INFO() << "inside";
+	}
+
+	/*
+	vec3 pVec(glm::normalize(glm::cross(AB, AC)));
+	float blabla = abs(pVec.x * (P.x - A.x) + pVec.y * (P.y - A.y) + pVec.z * (P.z - A.z));
+	float threshold = 0.00001f;
+
+	float PA_dot_AB = abs(glm::dot(PA, AB));
+	float PA_dot_AC = abs(glm::dot(PA, AC));
+
+	float AB_dot_AB = glm::dot(AB, AB);
+	float AC_dot_AC = glm::dot(AC, AC);
+
+
+	bool inside =
+	(abs(pVec.x * (P.x - A.x) + pVec.y * (P.y - A.y) + pVec.z * (P.z - A.z)) <= threshold)
+	&&
+	(0 <= PA_dot_AB)
+	&&
+	(PA_dot_AB <= AB_dot_AB)
+	&&
+	(0 <= PA_dot_AC)
+	&&
+	(PA_dot_AC <= AC_dot_AC);
+
+	_LOG_INFO() << "inside = " << inside;
+	_LOG_INFO() << PA_dot_AB << " <= " << AB_dot_AB;
+	_LOG_INFO() << PA_dot_AC << " <= " << AC_dot_AC;*/
+
+
+	// x TEMP
+
 }
 
 void CoreTP1::Render(double dt)
 {
-	/*
-	Screen limits (when lookAt = 0,3,-6 ; 0,0,0 ; 0,1,0)
-	For y = 0, z = 0 : x = -2.3 .. 2.3
-	For x = 0, z = 0 : y = -3.9 .. 2.55
-
-	For y = 0, z = 1 : x = -2.6 .. 2.6
-	For x = 0, z = 1 : y = -5.05 .. 2.515
-
-	*/
-	centerSphere.Render();
-
 	spaceship.render(dt);
+	dummyEnemy.render(dt);
+	projectile.render(dt);
 
-	//b.SetTransform(glm::scale(glm::rotate(glm::mat4(), f, glm::normalize(glm::vec3(0, 0.5f, 0.5f))), vec3(2, 1, 1)));
-	//sphere.SetTransform(glm::scale(glm::translate(glm::mat4(), glm::vec3(2, 0, 0)), vec3(1, 2, 2)));
-	//b2.Render();
-	
-	//sphere.SetTransform(glm::translate(glm::mat4(), glm::vec3(2,0,0)));
-	//sphere.SetTransform(glm::rotate(glm::mat4(), f, glm::vec3(1,0,1)));
-	
-//	leftConnector.SetTransform(glm::translate(glm::mat4(), vec3(1,-1,0)));
-	//rightConnector.SetTransform(glm::translate(glm::mat4(), vec3(-1, -1, 0)));
+	spaceship.checkCollisionWith(dummyEnemy);
 
-	//cylinder.SetTransform(glm::translate(glm::mat4(), vec3(1.55f, -2, 0)));
-//	cylinder1.SetTransform(glm::translate(glm::mat4(), vec3(-1.55f, -2, 0)));
-
-//	leftConnector.Render();
-//	rightConnector.Render();
-
-//	cylinder.Render();
-//	cylinder1.Render();
-//	mainBox.Render();
-
-	//sphere.SetTransform(glm::rotate(glm::mat4(), (f * direction), glm::normalize(glm::vec3(0, 1, 0))));
-	
-	//cylinder.SetTransform(glm::translate(glm::rotate(glm::mat4(), glm::pi<float>() / 2, glm::normalize(glm::vec3(1, 0, 0))), glm::vec3(-1, 0, 0)));
-	//cylinder.Render();
-
-	//cylinder1.SetTransform(glm::translate(glm::rotate(glm::mat4(), glm::pi<float>() / 2, glm::normalize(glm::vec3(1, 0, 0))), glm::vec3(1, 0, 0)));
-	//cylinder1.Render();
-
-	//sphere1.SetTransform(glm::translate(glm::mat4(), vec3(0,-2,0)));
-
-//	sphere.Render();
-	//sphere1.Render();
-	
-//	sphere.collisionDetected(sphere1);
-
-	//DrawText("Hello World!", glm::vec2(0.5f, 0.5f), glm::vec4(1, 1, 0, 1), 32, ALIGN_CENTER);
-
-	f += (float)dt * 2 * glm::pi<float>() * 0.1f;
-
+	//projectile.checkCollisionWith(dummyEnemy);
 }
 
 CoreTP1::~CoreTP1()

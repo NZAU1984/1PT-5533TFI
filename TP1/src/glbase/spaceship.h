@@ -4,13 +4,17 @@
 
 #include "scene.h"
 
+#include "ThreeDObject.h"
+
 
 using namespace glm;
 
-class Spaceship
+class Spaceship : public ThreeDObject
 {
 public:
 	Spaceship();
+
+	virtual ~Spaceship();
 
 	void render(double dt);
 

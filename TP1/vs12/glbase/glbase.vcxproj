@@ -13,6 +13,10 @@
   <ItemGroup>
     <ClInclude Include="..\..\include\log.h" />
     <ClInclude Include="..\..\include\main.h" />
+    <ClInclude Include="..\..\src\glbase\DummyEnemy.h" />
+    <ClInclude Include="..\..\src\glbase\Projectile.h" />
+    <ClInclude Include="..\..\src\glbase\ThreeDObject.h" />
+    <ClInclude Include="..\..\src\glbase\BoundingBox.h" />
     <ClInclude Include="..\..\src\glbase\core.h" />
     <ClInclude Include="..\..\src\glbase\scene.h" />
     <ClInclude Include="..\..\src\glbase\spaceship.h" />
@@ -28,6 +32,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\glbase\DummyEnemy.cpp" />
+    <ClCompile Include="..\..\src\glbase\Projectile.cpp" />
+    <ClCompile Include="..\..\src\glbase\ThreeDObject.cpp" />
+    <ClCompile Include="..\..\src\glbase\BoundingBox.cpp" />
     <ClCompile Include="..\..\src\glbase\core.cpp" />
     <ClCompile Include="..\..\src\glbase\log.cpp" />
     <ClCompile Include="..\..\src\glbase\main.cpp" />
