@@ -14,6 +14,7 @@
     <ClInclude Include="..\..\include\log.h" />
     <ClInclude Include="..\..\include\main.h" />
     <ClInclude Include="..\..\src\glbase\DummyEnemy.h" />
+    <ClInclude Include="..\..\src\glbase\enemyship.h" />
     <ClInclude Include="..\..\src\glbase\Projectile.h" />
     <ClInclude Include="..\..\src\glbase\ThreeDObject.h" />
     <ClInclude Include="..\..\src\glbase\BoundingBox.h" />
@@ -33,6 +34,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\glbase\DummyEnemy.cpp" />
+    <ClCompile Include="..\..\src\glbase\enemyship.cpp" />
     <ClCompile Include="..\..\src\glbase\Projectile.cpp" />
     <ClCompile Include="..\..\src\glbase\ThreeDObject.cpp" />
     <ClCompile Include="..\..\src\glbase\BoundingBox.cpp" />

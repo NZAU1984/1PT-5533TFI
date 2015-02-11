@@ -1,10 +1,13 @@
 #pragma once
 #include <main.h>
+#include <list>
+#include <vector>
 #include "core.h"
 #include "scene.h"
 #include "spaceship.h"
 #include "DummyEnemy.h"
 #include "Projectile.h"
+#include "enemyship.h"
 
 class CoreTP1 : public Core
 {
@@ -23,4 +26,6 @@ protected:
 	Spaceship spaceship;
 	DummyEnemy dummyEnemy;
 	Projectile projectile;
+
+	std::list<std::unique_ptr<EnemyShip>> enemies;
 };

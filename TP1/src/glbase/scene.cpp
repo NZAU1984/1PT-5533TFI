@@ -163,6 +163,8 @@ Shape::~Shape()
 
 Box::Box(vec4 color, const mat4& initialTransformationMatrix)
 {
+	_initialTransformationMatrix = glm::mat4(initialTransformationMatrix);
+
 	_vertexBuffer = _indexBuffer = BAD_BUFFER;
 
 	_color = color;
@@ -269,6 +271,7 @@ void Box::Render()
 	Shape::Render();
 
 	_verticesWereRecalculated = false;
+	_inverseTransformationMatrixWasCalculated = false;
 
 	glBindVertexArray(_vao);
 	
@@ -296,6 +299,27 @@ void Box::_transformVertices()
 
 bool Box::containsPoint(glm::vec3 point, glm::vec3 orientation)
 {
+	if (!_inverseTransformationMatrixWasCalculated)
+	{
+		_inverseTransformationMatrix = inverse(_initialTransformationMatrix) * inverse(_transform);
+		_inverseTransformationMatrixWasCalculated = true;
+	}
+
+	glm::vec3 originalPoint = vec3(_inverseTransformationMatrix * vec4(point, 1));
+
+	if (
+		(abs(originalPoint.y) <= (0.5f + 0.0001))
+		&&
+		(abs(originalPoint.x) <= (0.5f + 0.0001))
+		&&
+		(abs(originalPoint.z) <= (0.5f + 0.0001))
+		)
+	{
+		return true;
+	}
+
+	return false;
+	/*
 	_transformVertices();
 
 	bool returnValue = false;
@@ -343,7 +367,7 @@ bool Box::containsPoint(glm::vec3 point, glm::vec3 orientation)
 	delete firstIntersection;
 	delete secondIntersection;
 
-	return returnValue;
+	return returnValue;*/
 }
 
 bool Box::_parallelogramContainsPoint(glm::vec3 P, glm::vec3 direction, glm::vec3 A, glm::vec3 B, glm::vec3 C, glm::vec3 D, glm::vec3& intersection)
@@ -388,19 +412,6 @@ bool Box::_parallelogramContainsPoint(glm::vec3 P, glm::vec3 direction, glm::vec
 
 #pragma region SPHERE
 
-/*Sphere::Sphere(vec4 color, uint nUpperStacks, uint nSlices, float radius) :
-	_nStacks(2 * nUpperStacks + 1),
-
-	_nSlices(nSlices),
-
-	_vertexOrderVectorSize((2 * (nSlices * 3)) + (((2 * nUpperStacks) * (2 * nSlices)) * 3)),
-
-	_radius(radius)
-{
-	glm::mat4 dummyMatrix;
-	Sphere(color, nUpperStacks, nSlices, radius, glm::mat4());
-}*/
-
 /* Sphere constructor. Creates a sphere with a radius of 'radius'. Between the top vertex and the middle of the sphere
 are 'nUpperStacks' stacks, which are a circle of 'nSlices' vertices used to approximate a circle. There is the same
 amount of stacks below the middle. The middle is also a circle and also had 'nSlices' vertices. Finally, there is a
@@ -424,6 +435,8 @@ Sphere::Sphere(vec4 color, uint nUpperStacks, uint nSlices, float radius, const 
 	/* Storing radius for collision detection. */
 	_radius(radius)
 {
+	_initialTransformationMatrix = glm::mat4(initialTransformationMatrix);
+
 	_vertexBuffer = _indexBuffer = BAD_BUFFER;
 
 	_color = color;
@@ -586,10 +599,34 @@ void Sphere::Render()
 	glDrawElements(GL_TRIANGLES, _vertexOrderVectorSize, GL_UNSIGNED_INT, 0);
 
 	glBindVertexArray(0);
+
+	_inverseTransformationMatrixWasCalculated = false;
 }
 
 bool Sphere::containsPoint(glm::vec3 point, glm::vec3 orientation)
 {
+	if (!_inverseTransformationMatrixWasCalculated)
+	{
+		_inverseTransformationMatrix              = inverse(_initialTransformationMatrix) * inverse(_transform);
+		_inverseTransformationMatrixWasCalculated = true;
+	}
+
+	glm::vec3 originalPoint = vec3(_inverseTransformationMatrix * vec4(point, 1));
+
+	//_LOG_INFO() << "point = " << point.x << ", " << point.y << ", " << point.z;
+	//_LOG_INFO() << "origPoint = " << originalPoint.x << ", " << originalPoint.y << ", " << originalPoint.z;
+
+	if (
+		(abs(originalPoint.y) <= (_radius + 0.0001))
+		&&
+		(abs(originalPoint.x) <= (_radius + 0.0001))
+		&&
+		(abs(originalPoint.z) <= (_radius + 0.0001))
+		)
+	{
+		return true;
+	}
+
 	return false;
 }
 
@@ -637,8 +674,12 @@ _nSlices(nSlices),
 _nTrianglesOnSide(nSlices * 2 + 2),
 _offsetTop(0),
 _offsetSide(nSlices + 1),
-_offsetBottom(nSlices * 3 + 3)
+_offsetBottom(nSlices * 3 + 3),
+_height(height),
+_radius(radius)
 {
+	_initialTransformationMatrix = glm::mat4(initialTransformationMatrix);
+
 	_vertexBuffer = _indexBuffer = BAD_BUFFER;
 
 	_color = color;
@@ -732,10 +773,31 @@ void Cylinder::Render()
 	glDrawArrays(GL_TRIANGLE_FAN, _offsetBottom, _nSlices);
 
 	glBindVertexArray(0);
+
+	_inverseTransformationMatrixWasCalculated = false;
 }
 
 bool Cylinder::containsPoint(glm::vec3 point, glm::vec3 orientation)
 {
+	if (!_inverseTransformationMatrixWasCalculated)
+	{
+		_inverseTransformationMatrix              = inverse(_initialTransformationMatrix) * inverse(_transform);
+		_inverseTransformationMatrixWasCalculated = true;
+	}
+
+	glm::vec3 originalPoint = vec3(_inverseTransformationMatrix * vec4(point, 1));
+	
+	if (
+		(abs(originalPoint.y) <= (_height / 2 + 0.0001))
+		&&
+		(abs(originalPoint.x) <= (_radius + 0.0001))
+		&&
+		(abs(originalPoint.z) <= (_radius + 0.0001))
+		)
+	{
+		return true;
+	}
+
 	return false;
 }
 

@@ -28,7 +28,7 @@ std::string printVec3(glm::vec3 vec)
 CoreTP1::CoreTP1() :
 	Core(),
 	dummyEnemy(0, 0, 50, 0, 0, 0),
-	projectile(3, 0, 0, 0, 0, 5)
+	projectile(0, 0, 0, 0, 0, 5)
 {
 	/* '_viewMatrix' defined in 'core.h' with type 'glm::mat4'
 	 * It is a protected property of 'Core' (the superclass of the current class)
@@ -64,6 +64,7 @@ void CoreTP1::Render(double dt)
 	{
 		_LOG_INFO() << "=== Projectile collision ===";
 	}
+
 }
 
 CoreTP1::~CoreTP1()

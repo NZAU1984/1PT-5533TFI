@@ -61,13 +61,17 @@ protected:
 	float _minZ;
 	float _maxZ;
 
-	//BoundingBox* _boundingBox;
+	glm::mat4 _initialTransformationMatrix;
 
 	glm::vec3 getCenterVector() const;
 
 	GLuint _vertexBuffer, _indexBuffer, _vao;
 	
 	vec4 _color;
+
+	bool _inverseTransformationMatrixWasCalculated = false;
+
+	glm::mat4 _inverseTransformationMatrix;
 
 };
 
@@ -156,5 +160,5 @@ public:
 	bool containsPoint(glm::vec3 point, glm::vec3 orientation);
 
 protected:
-	uint _nSlices, _nTrianglesOnSide, _offsetTop, _offsetSide, _offsetBottom;
+	uint _nSlices, _nTrianglesOnSide, _offsetTop, _offsetSide, _offsetBottom, _height, _radius;
 };

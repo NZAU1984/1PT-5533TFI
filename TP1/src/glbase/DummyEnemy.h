@@ -20,6 +20,8 @@ public:
 
 protected:
 	Box _box;
+	Cylinder _cylinder;
+	Sphere _sphere;
 
 	double _positionX;
 	double _positionY;
