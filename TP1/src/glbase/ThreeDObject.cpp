@@ -61,6 +61,7 @@ BoundingBox* ThreeDObject::_getBoundingBox()
 
 bool ThreeDObject::checkCollisionWith(ThreeDObject& otherObject)
 {
+
 	return _getBoundingBox()->checkCollision(otherObject._getBoundingBox());
 }
 
@@ -68,7 +69,7 @@ bool ThreeDObject::checkCollisionWithProjectile(Projectile& projectile)
 {
 	for (auto it = _shapeList.begin(), itEnd = _shapeList.end(); it != itEnd; ++it)
 	{
-		if ((*it)->containsPoint(projectile.getPosition(), projectile.getOrientationVector()))
+		if ((*it)->containsPoint(projectile.getPosition()))
 		{
 			return true;
 		}

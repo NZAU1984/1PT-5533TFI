@@ -117,8 +117,10 @@ _addShapeToList(&firstBackConnector);
 _addShapeToList(&secondBackConnector);
 
 
+_defineBoundingBox();
 
-//_defineBoundingBox();
+_translateBoundingBox(_xPosition, 0, _zPosition);
+
 }
 
 EnemyShip::~EnemyShip()

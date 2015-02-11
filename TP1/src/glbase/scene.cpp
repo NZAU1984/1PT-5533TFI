@@ -262,7 +262,7 @@ void Box::Render()
 	glBindVertexArray(0);
 }
 
-bool Box::containsPoint(glm::vec3 point, glm::vec3 orientation)
+bool Box::containsPoint(glm::vec3 point)
 {
 	/* Every time a frame is rendered, we must recalculate the inverse transformation matrix, but we only do it once
 	   per frame. */
@@ -478,7 +478,7 @@ void Sphere::Render()
 	_inverseTransformationMatrixWasCalculated = false;
 }
 
-bool Sphere::containsPoint(glm::vec3 point, glm::vec3 orientation)
+bool Sphere::containsPoint(glm::vec3 point)
 {
 	/* Please refer to Box::containsPoint() */
 	if (!_inverseTransformationMatrixWasCalculated)
@@ -622,7 +622,7 @@ void Cylinder::Render()
 	_inverseTransformationMatrixWasCalculated = false;
 }
 
-bool Cylinder::containsPoint(glm::vec3 point, glm::vec3 orientation)
+bool Cylinder::containsPoint(glm::vec3 point)
 {
 	/* Please refer to Box::containsPoint(). */
 	if (!_inverseTransformationMatrixWasCalculated)

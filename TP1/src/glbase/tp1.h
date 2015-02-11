@@ -10,6 +10,7 @@
 #include "DummyEnemy.h"
 #include "Projectile.h"
 #include "enemyship.h"
+#include "enemyshipbis.h"
 
 class CoreTP1 : public Core
 {
@@ -32,6 +33,7 @@ protected:
 	Projectile projectile;
 
 	std::list<std::unique_ptr<EnemyShip>> enemies;
+	std::list<std::unique_ptr<EnemyShipBis>> enemiesBis;
 
 	bool _invincibleMode = false;
 
@@ -50,4 +52,14 @@ protected:
 	void _timerTick();
 
 	void _hitPlayer();
+
+	void _addEnemy1();
+
+	void _addEnemy2();
+
+	double _timerEnemy1 = 0;
+	double _timerEnemy2 = 0;
+
+	double _delayEnemy1 = 3;
+	double _delayEnemy2 = 3;
 };

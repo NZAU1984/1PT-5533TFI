@@ -40,7 +40,7 @@ public:
 	void color(const vec4& v) { _color = v; }
 	const vec4& color() const { return _color; }
 
-	virtual bool containsPoint(glm::vec3 point, glm::vec3 orientation) = 0;
+	virtual bool containsPoint(glm::vec3 point) = 0;
 
 	float getMinX();
 	float getMaxX();
@@ -80,7 +80,7 @@ public:
 
 	virtual void Render() override;
 
-	bool containsPoint(glm::vec3 point, glm::vec3 orientation);
+	bool containsPoint(glm::vec3 point);
 
 protected:
 
@@ -105,7 +105,7 @@ public:
 	/* Rendering method. */
 	virtual void Render() override;
 
-	bool containsPoint(glm::vec3 point, glm::vec3 orientation);
+	bool containsPoint(glm::vec3 point);
 
 protected:
 	/* Number of stacks and, for each stack, number of slices (vertices). */
@@ -124,7 +124,7 @@ public:
 	/* Rendering method. */
 	virtual void Render() override;
 
-	bool containsPoint(glm::vec3 point, glm::vec3 orientation);
+	bool containsPoint(glm::vec3 point);
 
 protected:
 	uint _nSlices, _nTrianglesOnSide, _offsetTop, _offsetSide, _offsetBottom, _height, _radius;

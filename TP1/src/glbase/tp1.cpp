@@ -4,6 +4,7 @@
 
 #include <sstream>
 #include <string>
+#include <time.h>
 
 std::string printVec3(glm::vec3 vec)
 {
@@ -44,12 +45,27 @@ CoreTP1::CoreTP1() :
 	_viewMatrix = glm::lookAt(glm::vec3(0, 45, -25), glm::vec3(0, 0, 20), glm::vec3(0, 1, 0));
 
 	_timerTick();
+
+	/*srand(time(NULL));
+
+	uint randm = (rand() % 1001);
+
+	_LOG_INFO() << randm;
+
+	if (randm < 500)
+	{
+		_addEnemy1();
+	}
+	else
+	{
+		_addEnemy2();
+	}*/
 }
 
 void CoreTP1::Render(double dt)
 {
 	spaceship.render(dt);
-	dummyEnemy.render(dt);
+//	dummyEnemy.render(dt);
 //	projectile.render(dt);
 
 	_timerHasExpired = (glfwGetTime() > (_timerStart + _delay));
@@ -118,12 +134,33 @@ void CoreTP1::Render(double dt)
 		}
 	}
 
-	bool coll = dummyEnemy.checkCollisionWithProjectile(projectile);
+/*	bool coll = dummyEnemy.checkCollisionWithProjectile(projectile);
 
 	if (coll)
 	{
 		_LOG_INFO() << "=== Projectile collision ===";
+	}*/
+	//_LOG_INFO() << rand() % 1001;
+	/*if ((_timerEnemy1 + _delayEnemy1 < glfwGetTime()) && ((rand() % 1001) <= 10) && enemies.size() < 5)
+	{
+		_addEnemy1();
+		//_LOG_INFO() << "added EnemyShip";
+		//enemies.push_back(std::unique_ptr<EnemyShip>(new EnemyShip()));
 	}
+	else if ((_timerEnemy2 + _delayEnemy2 < glfwGetTime()) && ((rand() % 1001) <= 10) && enemiesBis.size() < 5)
+	{
+		_addEnemy2();
+	}
+
+	for (auto it = enemies.begin(), itEnd = enemies.end(); it != itEnd; ++it)
+	{
+		(*it)->render(dt);
+	}
+
+	for (auto it = enemiesBis.begin(), itEnd = enemiesBis.end(); it != itEnd; ++it)
+	{
+		(*it)->render(dt);
+	}*/
 
 	std::stringstream ss;
 	std::stringstream ss1;
@@ -133,6 +170,21 @@ void CoreTP1::Render(double dt)
 
 	DrawText((ss.str()).c_str(), glm::vec2(0.01f, 0.92f), glm::vec4(1, 0, 0, 1), 32, ALIGN_LEFT);
 	DrawText((ss1.str()).c_str(), glm::vec2(0.99f, 0.92f), glm::vec4(1, 0, 0, 1), 32, ALIGN_RIGHT);
+}
+
+void CoreTP1::_addEnemy1()
+{
+	_LOG_INFO() << "added EnemyShip";
+	enemies.push_back(std::unique_ptr<EnemyShip>(new EnemyShip()));
+
+	_timerEnemy1 = glfwGetTime();
+}
+
+void CoreTP1::_addEnemy2()
+{
+	_LOG_INFO() << "added EnemyShipBis";
+	//enemies.push_back(std::unique_ptr<EnemyShip>(new EnemyShip()));
+	_timerEnemy2 = glfwGetTime();
 }
 
 CoreTP1::~CoreTP1()
