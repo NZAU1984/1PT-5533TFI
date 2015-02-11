@@ -43,20 +43,80 @@ CoreTP1::CoreTP1() :
 	// default = 0, 3, -6 ... 0,0,0 .. 0,1,0
 	_viewMatrix = glm::lookAt(glm::vec3(0, 45, -25), glm::vec3(0, 0, 20), glm::vec3(0, 1, 0));
 
-	for (glm::vec3 position : spaceship.getPosition())
-	{
-		_LOG_INFO() << position.x << ", " << position.y << ", " << position.z;
-	}
-
+	_timerTick();
 }
 
 void CoreTP1::Render(double dt)
 {
 	spaceship.render(dt);
 	dummyEnemy.render(dt);
-	projectile.render(dt);
+//	projectile.render(dt);
 
-	spaceship.checkCollisionWith(dummyEnemy);
+	_timerHasExpired = (glfwGetTime() > (_timerStart + _delay));
+
+	if (_dead)
+	{
+		DrawText("YOU DIED :(", glm::vec2(0.5f, 0.5f), glm::vec4(1, 0, 0, 1), 32, ALIGN_CENTER);
+
+		_invincibleMode = false;
+	}
+	else
+	{
+		if (_invincibleMode)
+		{
+			DrawText("INVINCIBLE MODE", glm::vec2(0.5f, 0.0f), glm::vec4(1, 0, 0, 1), 32, ALIGN_CENTER);
+		}
+		else if (_timerHasExpired)
+		{
+			// check with every enemy. ONE positive collision = do stuff AND return to exit function to avoid checking
+			// any other collision !
+			
+			// BEGIN loop : enemies
+			// change 'dummyEnemy' with iterator...
+			if (spaceship.checkCollisionWith(dummyEnemy))
+			{
+				_hitPlayer();
+
+				// remove all enemies
+				// remove all player's projectiles
+				// remove all enemies' projectiles
+
+				// return; <= IMPORTANT !!
+			}
+				// BEGIN loop : player's projectiles
+				/*
+				if(dummyEnemy.checkCollisionWithProjectile(projectile))
+				{
+					dummyEnemy.kill(); // whatever...
+
+					// give points to player...
+				}
+				*/
+				// END loop : player's projectiles
+			// END loop : enemies
+
+			// BEGIN loop : enemies' projectiles
+			/*
+			if(spaceship.checkCollisionWithProjectile(projectile))
+			{
+				_hitPlayer();
+
+				// remove all enemies
+				// remove all player's projectiles
+				// remove all enemies' projectiles
+
+				// return; <= IMPORTANT
+			}
+
+			*/
+			// END loop : enemies' projectiles
+
+		}
+		else
+		{
+			DrawText("GET READY!", glm::vec2(0.5f, 0.5f), glm::vec4(1, 0, 0, 1), 32, ALIGN_CENTER);
+		}
+	}
 
 	bool coll = dummyEnemy.checkCollisionWithProjectile(projectile);
 
@@ -65,15 +125,47 @@ void CoreTP1::Render(double dt)
 		_LOG_INFO() << "=== Projectile collision ===";
 	}
 
+	std::stringstream ss;
+	std::stringstream ss1;
+
+	ss << "LIVES: " << _nLives;
+	ss1 << "POINTS: " << _points;
+
+	DrawText((ss.str()).c_str(), glm::vec2(0.01f, 0.92f), glm::vec4(1, 0, 0, 1), 32, ALIGN_LEFT);
+	DrawText((ss1.str()).c_str(), glm::vec2(0.99f, 0.92f), glm::vec4(1, 0, 0, 1), 32, ALIGN_RIGHT);
 }
 
 CoreTP1::~CoreTP1()
 {
 }
 
+void CoreTP1::_timerTick()
+{
+	_timerStart = glfwGetTime();
+}
+
+void CoreTP1::_hitPlayer()
+{
+	--_nLives;
+
+	DrawText("BANG!", glm::vec2(0.5f, 0.5f), glm::vec4(1, 0, 0, 1), 32, ALIGN_CENTER);
+
+	if (_nLives == 0)
+	{
+		_dead = true;
+	}
+
+	spaceship.resetPosition();
+
+	_timerTick();
+}
+
 void CoreTP1::OnKeyW(bool down)
 {
-	_LOG_INFO() << "W, down=" << down;
+	if (!_timerHasExpired || _dead)
+	{
+		return;
+	}
 
 	if (down)
 	{
@@ -87,7 +179,10 @@ void CoreTP1::OnKeyW(bool down)
 
 void CoreTP1::OnKeyA(bool down)
 {
-	_LOG_INFO() << "A, down=" << down;
+	if (!_timerHasExpired || _dead)
+	{
+		return;
+	}
 
 	if (down)
 	{
@@ -101,7 +196,10 @@ void CoreTP1::OnKeyA(bool down)
 
 void CoreTP1::OnKeyS(bool down)
 {
-	_LOG_INFO() << "S, down=" << down;
+	if (!_timerHasExpired || _dead)
+	{
+		return;
+	}
 
 	if (down)
 	{
@@ -115,7 +213,10 @@ void CoreTP1::OnKeyS(bool down)
 
 void CoreTP1::OnKeyD(bool down)
 {
-	_LOG_INFO() << "D, down=" << down;
+	if (!_timerHasExpired || _dead)
+	{
+		return;
+	}
 
 	if (down)
 	{
@@ -124,6 +225,37 @@ void CoreTP1::OnKeyD(bool down)
 	else
 	{
 		spaceship.stopGoingRight();
+	}
+}
+
+void CoreTP1::OnKeySPACE(bool down)
+{
+	if (!_timerHasExpired)
+	{
+		return;
+	}
+
+	if (_dead)
+	{
+		_dead   = false;
+		_nLives = 5;
+		_points = 0;
+		_timerTick();
+	}
+
+	if (down)
+	{
+		_LOG_INFO() << "SPACE";
+	}
+}
+
+void CoreTP1::OnKeyTAB(bool down)
+{
+	if (down)
+	{
+		_invincibleMode = !_invincibleMode;
+
+		_LOG_INFO() << "TAB " << _invincibleMode;
 	}
 }
 

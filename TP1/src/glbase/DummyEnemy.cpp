@@ -21,6 +21,7 @@ DummyEnemy::DummyEnemy(double x, double y, double z, double dx, double dy, doubl
 	_dz(dz)
 {
 	_LOG_INFO() << "DUMMY ENEMY";
+	
 	_addShapeToList(&_box);
 	_addShapeToList(&_cylinder);
 	_addShapeToList(&_sphere);
@@ -32,7 +33,7 @@ DummyEnemy::DummyEnemy(double x, double y, double z, double dx, double dy, doubl
 
 DummyEnemy::~DummyEnemy()
 {
-
+	_LOG_INFO() << "~DummyEnemy";
 }
 
 void DummyEnemy::render(double dt)
@@ -50,6 +51,6 @@ void DummyEnemy::render(double dt)
 	_sphere.SetTransform(glm::translate(glm::mat4(), glm::vec3(_positionX, _positionY, 15)));
 
 	_box.Render();
-	_cylinder.Render();
+	//_cylinder.Render();
 	_sphere.Render();
 }

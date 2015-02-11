@@ -646,6 +646,20 @@ void Spaceship::stopGoingBackward()
 	}
 }
 
+void Spaceship::resetPosition()
+{
+	double positionXCopy = _positionX;
+	double positionZCopy = _positionZ;
+	
+	_positionX = 0;
+	_positionZ = 0;
+
+	_translateBoundingBox(_positionX - positionXCopy, 0, _positionZ - positionZCopy);
+
+	_speedX = 0;
+	_speedZ = 0;
+}
+
 bool Spaceship::isGoingForward()
 {
 	return (sign(_speedZ) > 0);

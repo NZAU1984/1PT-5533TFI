@@ -2,6 +2,7 @@
 
 ThreeDObject::~ThreeDObject()
 {
+	_LOG_INFO() << "~ThreeDObject";
 	delete _boundingBox;
 }
 
@@ -20,7 +21,7 @@ void ThreeDObject::_defineBoundingBox()
 	float maxZ = 0;
 	bool firstItem = true;
 
-	for (std::list<Shape*>::const_iterator it = _shapeList.begin(), itEnd = _shapeList.end(); it != itEnd; ++it)
+	for (auto it = _shapeList.begin(), itEnd = _shapeList.end(); it != itEnd; ++it)
 	{
 		if (firstItem)
 		{
@@ -65,7 +66,7 @@ bool ThreeDObject::checkCollisionWith(ThreeDObject& otherObject)
 
 bool ThreeDObject::checkCollisionWithProjectile(Projectile& projectile)
 {
-	for (std::list<Shape*>::const_iterator it = _shapeList.begin(), itEnd = _shapeList.end(); it != itEnd; ++it)
+	for (auto it = _shapeList.begin(), itEnd = _shapeList.end(); it != itEnd; ++it)
 	{
 		if ((*it)->containsPoint(projectile.getPosition(), projectile.getOrientationVector()))
 		{

@@ -140,15 +140,10 @@ void Shape::applyTransformatioMatrixAndDefineMinMaxXYZ(VertexPositionNormal* ver
 	}
 }
 
-glm::vec3 Shape::getCenterVector() const
-{
-	glm::vec4 transformedCenter = _transform * glm::vec4(0, 0, 0, 1);
-
-	return glm::vec3(transformedCenter.x, transformedCenter.y, transformedCenter.z);
-}
 
 Shape::~Shape()
 {
+	_LOG_INFO() << "~Shape";
 	if (_vertexBuffer != BAD_BUFFER)
 		glDeleteBuffers(1, &_vertexBuffer);
 
@@ -224,8 +219,6 @@ Box::Box(vec4 color, const mat4& initialTransformationMatrix)
 		{ vec3(1, 1, 0), vec3(0, 0, -1) }
 	};
 
-	
-
 	for (uint x = 0; x < 36; x++)
 	{
 		vertices[x].position -= 0.5;
@@ -233,16 +226,6 @@ Box::Box(vec4 color, const mat4& initialTransformationMatrix)
 
 	/* Modification from original code. Applies an initial transformation matrix. */
 	applyTransformatioMatrixAndDefineMinMaxXYZ(vertices, 36, initialTransformationMatrix);
-
-	/* Defining 8 vertices */
-	_vertices[0] = initialTransformationMatrix * vec4(0.5f, 0.5f, -0.5f, 1); // left top back
-	_vertices[1] = initialTransformationMatrix * vec4(0.5f, -0.5f, -0.5f, 1); // left bottom back
-	_vertices[2] = initialTransformationMatrix * vec4(-0.5f, 0.5f, -0.5f, 1); // right top back
-	_vertices[3] = initialTransformationMatrix * vec4(-0.5f, -0.5f, -0.5f, 1); // right bottom back
-	_vertices[4] = initialTransformationMatrix * vec4(-0.5f, 0.5f, 0.5f, 1); // right top front
-	_vertices[5] = initialTransformationMatrix * vec4(-0.5f, -0.5f, 0.5f, 1); // right bottom front
-	_vertices[6] = initialTransformationMatrix * vec4(0.5f, 0.5f, 0.5f, 1); // left top front
-	_vertices[7] = initialTransformationMatrix * vec4(0.5f, -0.5f, 0.5f, 1); // left bottom front
 	
 	// Create Vertex Array Object
 	glGenVertexArrays(1, &_vao);
@@ -270,7 +253,6 @@ void Box::Render()
 {
 	Shape::Render();
 
-	_verticesWereRecalculated = false;
 	_inverseTransformationMatrixWasCalculated = false;
 
 	glBindVertexArray(_vao);
@@ -280,25 +262,10 @@ void Box::Render()
 	glBindVertexArray(0);
 }
 
-void Box::_transformVertices()
-{
-	if (!_verticesWereRecalculated)
-	{
-		_currentVertices[0] = vec3(_transform * _vertices[0]); // left top back
-		_currentVertices[1] = vec3(_transform * _vertices[1]); // left bottom back
-		_currentVertices[2] = vec3(_transform * _vertices[2]); // right top back
-		_currentVertices[3] = vec3(_transform * _vertices[3]); // right bottom back
-		_currentVertices[4] = vec3(_transform * _vertices[4]); // right top front
-		_currentVertices[5] = vec3(_transform * _vertices[5]); // right bottom front
-		_currentVertices[6] = vec3(_transform * _vertices[6]); // left top front
-		_currentVertices[7] = vec3(_transform * _vertices[7]); // left bottom front
-
-		_verticesWereRecalculated = true;
-	}
-}
-
 bool Box::containsPoint(glm::vec3 point, glm::vec3 orientation)
 {
+	/* Every time a frame is rendered, we must recalculate the inverse transformation matrix, but we only do it once
+	   per frame. */
 	if (!_inverseTransformationMatrixWasCalculated)
 	{
 		_inverseTransformationMatrix = inverse(_initialTransformationMatrix) * inverse(_transform);
@@ -307,101 +274,15 @@ bool Box::containsPoint(glm::vec3 point, glm::vec3 orientation)
 
 	glm::vec3 originalPoint = vec3(_inverseTransformationMatrix * vec4(point, 1));
 
+	/* Checking bounds. */
 	if (
-		(abs(originalPoint.y) <= (0.5f + 0.0001))
+		(abs(originalPoint.y) <= (0.5f + 0.0001)) // 0.0001 as epsilon because of some loss of precision 
 		&&
 		(abs(originalPoint.x) <= (0.5f + 0.0001))
 		&&
 		(abs(originalPoint.z) <= (0.5f + 0.0001))
 		)
 	{
-		return true;
-	}
-
-	return false;
-	/*
-	_transformVertices();
-
-	bool returnValue = false;
-
-	glm::vec3* firstIntersection  = NULL;
-	glm::vec3* secondIntersection = NULL;
-
-	for (int i = 0; i < 8; i += 2)
-	{
-		glm::vec3* intersection = new vec3(123, 0, 0);
-
-		if (_parallelogramContainsPoint(point, orientation, _currentVertices[i], _currentVertices[i + 1],
-			_currentVertices[(i + 2) % 8], _currentVertices[(i + 3) % 8], *intersection))
-		{		
-			if (firstIntersection == NULL)
-			{
-				firstIntersection = intersection;
-			}
-			else
-			{
-				secondIntersection = intersection;
-
-				break;
-			}
-		}
-		else
-		{
-			delete intersection;
-		}
-
-	}
-
-	if (firstIntersection != NULL && secondIntersection != NULL)
-	{
-		float distAB = sqrt(glm::dot(*secondIntersection - *firstIntersection, *secondIntersection - *firstIntersection));
-		float distPA = sqrt(glm::dot(point - *firstIntersection, point - *firstIntersection));
-		float distPB = sqrt(glm::dot(point - *secondIntersection, point - *secondIntersection));
-
-		if (abs(distAB - distPA - distPB) < 0.0001f)
-		{
-			returnValue = true;
-		}
-	}
-
-	delete firstIntersection;
-	delete secondIntersection;
-
-	return returnValue;*/
-}
-
-bool Box::_parallelogramContainsPoint(glm::vec3 P, glm::vec3 direction, glm::vec3 A, glm::vec3 B, glm::vec3 C, glm::vec3 D, glm::vec3& intersection)
-{
-	glm::vec3 perpVec = glm::normalize(glm::cross(B - A, C - A));
-
-	if (glm::dot(direction, perpVec) == 0)
-	{
-		return false;
-	}
-
-	float t = (perpVec.x * A.x + perpVec.y * A.y + perpVec.z * A.z - perpVec.x * P.x - perpVec.y * P.y - perpVec.z * P.z)
-		/ (perpVec.x * direction.x + perpVec.y * direction.y + perpVec.z * direction.z);
-
-	glm::vec3 P1(P.x + direction.x * t, P.y + direction.y * t, P.z + direction.z * t);	
-
-	glm::vec3 AB_x_AC = glm::cross(B - A, C - A);
-
-	float parallelogramVolume = sqrt(glm::dot(AB_x_AC, AB_x_AC));
-
-	vec3 PAxAB = glm::cross(P1 - A, A - B);
-	vec3 PBxBD = glm::cross(P1 - B, B - D);
-	vec3 PDxDC = glm::cross(P1 - D, D - C);
-	vec3 PCxCA = glm::cross(P1 - C, C - A);
-
-	float volume = sqrt(glm::dot(PAxAB, PAxAB)) / 2 + sqrt(glm::dot(PBxBD, PBxBD)) / 2 + sqrt(glm::dot(PDxDC, PDxDC)) / 2
-		+ sqrt(glm::dot(PCxCA, PCxCA)) / 2;
-	
-	if (abs(volume - parallelogramVolume) < 0.0001f)
-	{
-		intersection.x = P1.x;
-		intersection.y = P1.y;
-		intersection.z = P1.z;
-
 		return true;
 	}
 
@@ -488,7 +369,6 @@ Sphere::Sphere(vec4 color, uint nUpperStacks, uint nSlices, float radius, const 
 		/* Phi is the angle used on the Y axis. In a sphere, the top is pi/2, and the bottom is -pi/2. Here we
 		calculate the phi angle for the current stack. */
 		float phi = (glm::pi<float>() / nStacks) * (nUpperStacks - currentStack);
-			//(glm::pi<float>() / 2) - (((glm::pi<float>() / 2) / (nUpperStacks + 1)) * (currentStack + 1));
 
 		float currentY = _radius * glm::sin(phi);
 
@@ -583,11 +463,6 @@ Sphere::Sphere(vec4 color, uint nUpperStacks, uint nSlices, float radius, const 
 	delete[] vertices;
 }
 
-float Sphere::getRadius() const
-{
-	return _radius;
-}
-
 void Sphere::Render()
 {
 	Shape::Render();
@@ -605,6 +480,7 @@ void Sphere::Render()
 
 bool Sphere::containsPoint(glm::vec3 point, glm::vec3 orientation)
 {
+	/* Please refer to Box::containsPoint() */
 	if (!_inverseTransformationMatrixWasCalculated)
 	{
 		_inverseTransformationMatrix              = inverse(_initialTransformationMatrix) * inverse(_transform);
@@ -613,9 +489,7 @@ bool Sphere::containsPoint(glm::vec3 point, glm::vec3 orientation)
 
 	glm::vec3 originalPoint = vec3(_inverseTransformationMatrix * vec4(point, 1));
 
-	//_LOG_INFO() << "point = " << point.x << ", " << point.y << ", " << point.z;
-	//_LOG_INFO() << "origPoint = " << originalPoint.x << ", " << originalPoint.y << ", " << originalPoint.z;
-
+	/* (x, y, z) are in the sphere if they are <= _radius. */
 	if (
 		(abs(originalPoint.y) <= (_radius + 0.0001))
 		&&
@@ -630,39 +504,10 @@ bool Sphere::containsPoint(glm::vec3 point, glm::vec3 orientation)
 	return false;
 }
 
-bool Sphere::collisionDetected(const Sphere& sphereShape) const
-{
-		glm::vec3 myCenter = getCenterVector();
-		glm::vec3 itsCenter = sphereShape.getCenterVector();
-
-		glm::vec3 distanceVector = glm::vec3(0, 2, 0); //glm::vec3(itsCenter.x - myCenter.x, itsCenter.y - myCenter.y, itsCenter.z - myCenter.z);
-
-		float distance = sqrt(pow(distanceVector.x, 2) + pow(distanceVector.y, 2) + pow(distanceVector.z, 2)); //distanceVector.length();
-
-		_LOG_INFO() << "collisionDetected my x,y,z =" << myCenter.x << ", " << myCenter.y << ", " << myCenter.z;
-		_LOG_INFO() << "collisionDetected its x,y,z =" << itsCenter.x << ", " << itsCenter.y << ", " << itsCenter.z;
-		_LOG_INFO() << "collisionDetected distance x,y,z =" << distanceVector.x << ", " << distanceVector.y << ", " << distanceVector.z;
-		_LOG_INFO() << "distance=" << distance;
-
-		std::this_thread::sleep_for(std::chrono::seconds(1));
-
-	return false;
-}
-
 #pragma endregion
 
 #pragma region CYLINDER
 
-/*Cylinder::Cylinder(vec4 color, uint nSlices, float height, float radius) :
-_nSlices(nSlices),
-_nTrianglesOnSide(nSlices * 2 + 2),
-_offsetTop(0),
-_offsetSide(nSlices + 1),
-_offsetBottom(nSlices * 3 + 3)
-{
-	glm::mat4 dummyMatrix;
-	Cylinder(color, nSlices, height, radius, dummyMatrix);
-}*/
 /* Cylinder constructor. Creates a cylinder with a height of 'height' and a radius of 'radius'. There are 'nSlices'
 vertices used to create a circle. In total, there are four circles, twice the same circle on top, twice the same circle
 on bottom. The reason we duplicate vertices is that for the top, the normals must be pointing upward, for the bottom,
@@ -779,6 +624,7 @@ void Cylinder::Render()
 
 bool Cylinder::containsPoint(glm::vec3 point, glm::vec3 orientation)
 {
+	/* Please refer to Box::containsPoint(). */
 	if (!_inverseTransformationMatrixWasCalculated)
 	{
 		_inverseTransformationMatrix              = inverse(_initialTransformationMatrix) * inverse(_transform);
@@ -787,6 +633,8 @@ bool Cylinder::containsPoint(glm::vec3 point, glm::vec3 orientation)
 
 	glm::vec3 originalPoint = vec3(_inverseTransformationMatrix * vec4(point, 1));
 	
+	/* Point is inside the cylinder if between +_height/2 and -_height/2 (simplified with abs()), and if X and Z are
+	   smaller or equal to _radius. */
 	if (
 		(abs(originalPoint.y) <= (_height / 2 + 0.0001))
 		&&

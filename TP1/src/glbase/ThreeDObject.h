@@ -12,6 +12,7 @@
 
 using namespace glm;
 
+/* Abstract class to contain 3D objects like Spaceship and enemies' ships. */
 class ThreeDObject
 {
 public:
@@ -26,7 +27,7 @@ public:
 protected:
 	BoundingBox* _boundingBox = NULL;
 
-	std::list<Shape *> _shapeList;
+	std::list<Shape*> _shapeList;
 
 	void _addShapeToList(Shape* shape);
 

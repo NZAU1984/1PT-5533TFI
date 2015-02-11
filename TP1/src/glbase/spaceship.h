@@ -30,6 +30,8 @@ public:
 	void stopGoingRight();
 	void stopGoingBackward();
 
+	void resetPosition();
+
 	std::vector<glm::vec3> getPosition();
 
 protected:
