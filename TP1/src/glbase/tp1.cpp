@@ -4,7 +4,6 @@
 
 #include <sstream>
 #include <string>
-#include <time.h>
 
 std::string printVec3(glm::vec3 vec)
 {
@@ -27,9 +26,7 @@ std::string printVec3(glm::vec3 vec)
  * 'vec4' is part of GLM
  */
 CoreTP1::CoreTP1() :
-	Core(),
-	dummyEnemy(0, 0, 50, 0, 0, 0),
-	projectile(0, 0, 0, 0, 0, 5)
+    Core()
 {
 	/* '_viewMatrix' defined in 'core.h' with type 'glm::mat4'
 	 * It is a protected property of 'Core' (the superclass of the current class)
@@ -43,152 +40,193 @@ CoreTP1::CoreTP1() :
 	 * */
 	// default = 0, 3, -6 ... 0,0,0 .. 0,1,0
 	_viewMatrix = glm::lookAt(glm::vec3(0, 45, -25), glm::vec3(0, 0, 20), glm::vec3(0, 1, 0));
-
-	_timerTick();
-
-	/*srand(time(NULL));
-
-	uint randm = (rand() % 1001);
-
-	_LOG_INFO() << randm;
-
-	if (randm < 500)
-	{
-		_addEnemy1();
-	}
-	else
-	{
-		_addEnemy2();
-	}*/
 }
 
 void CoreTP1::Render(double dt)
 {
 	spaceship.render(dt);
-//	dummyEnemy.render(dt);
-//	projectile.render(dt);
 
-	_timerHasExpired = (glfwGetTime() > (_timerStart + _delay));
-
-	if (_dead)
+	//Popper éventuellement un nouvel ennemi
+	if (((rand() / (double)RAND_MAX) * (1000 - 0) + 0) <= 5 && enemies.size() < 5)
 	{
-		DrawText("YOU DIED :(", glm::vec2(0.5f, 0.5f), glm::vec4(1, 0, 0, 1), 32, ALIGN_CENTER);
-
-		_invincibleMode = false;
+		enemies.push_back(std::unique_ptr<EnemyShip>(new EnemyShip()));
 	}
-	else
+
+	if (((rand() / (double)RAND_MAX) * (1000 - 0) + 0) <= 5 && enemiesBis.size() < 5)
 	{
-		if (_invincibleMode)
+		enemiesBis.push_back(std::unique_ptr<EnemyShipBis>(new EnemyShipBis()));
+	}
+
+	{
+		auto enemyIterator = enemies.begin();
+
+		while (enemyIterator != enemies.end())
 		{
-			DrawText("INVINCIBLE MODE", glm::vec2(0.5f, 0.0f), glm::vec4(1, 0, 0, 1), 32, ALIGN_CENTER);
-		}
-		else if (_timerHasExpired)
-		{
-			// check with every enemy. ONE positive collision = do stuff AND return to exit function to avoid checking
-			// any other collision !
-			
-			// BEGIN loop : enemies
-			// change 'dummyEnemy' with iterator...
-			if (spaceship.checkCollisionWith(dummyEnemy))
+			/* Checking for killed enemies. */
+			if (!(*enemyIterator)->isAlive())
 			{
-				_hitPlayer();
+				_LOG_INFO() << "DESTROY EnemyShip";
 
-				// remove all enemies
-				// remove all player's projectiles
-				// remove all enemies' projectiles
+				enemyIterator = enemies.erase(enemyIterator);
 
-				// return; <= IMPORTANT !!
+				continue;
 			}
-				// BEGIN loop : player's projectiles
-				/*
-				if(dummyEnemy.checkCollisionWithProjectile(projectile))
+
+			if ((*enemyIterator)->checkCollisionWith(spaceship))
+			{
+				_LOG_INFO() << "DEAD: YOU WERE HIT BY 'EnemyShip'.";
+
+				return;
+			}
+
+			/* Not dead: render. */
+			(*enemyIterator)->render(dt);
+
+			if ((*enemyIterator)->canShoot())
+			{
+				std::vector<glm::vec3> listTmp = (*enemyIterator)->getPosition();
+
+				for (std::vector<glm::vec3>::iterator itbis = listTmp.begin(); itbis != listTmp.end(); ++itbis)
 				{
-					dummyEnemy.kill(); // whatever...
-
-					// give points to player...
+					enemyProjectiles.push_back(std::unique_ptr<Projectile>(
+						new Projectile((*itbis).x, (*itbis).y, (*itbis).z, 0, 0, -12)));
 				}
-				*/
-				// END loop : player's projectiles
-			// END loop : enemies
-
-			// BEGIN loop : enemies' projectiles
-			/*
-			if(spaceship.checkCollisionWithProjectile(projectile))
-			{
-				_hitPlayer();
-
-				// remove all enemies
-				// remove all player's projectiles
-				// remove all enemies' projectiles
-
-				// return; <= IMPORTANT
 			}
 
-			*/
-			// END loop : enemies' projectiles
+			auto playersProjectileIterator = playersProjectiles.begin();
 
+			while (playersProjectileIterator != playersProjectiles.end())
+			{
+				if ((*enemyIterator)->checkCollisionWithProjectile((*playersProjectileIterator)->getPosition()))
+				{
+					_LOG_INFO() << "YOU KILLED 'EnemyShip'.";
+
+					enemyIterator = enemies.erase(enemyIterator);
+
+					goto END_OF_LOOP;
+				}
+
+				//(*playersProjectileIterator)->render(dt);
+
+				++playersProjectileIterator;
+			}
+
+			++enemyIterator;
+
+		END_OF_LOOP:;
 		}
-		else
+	}
+
+	{
+		auto enemyIterator = enemiesBis.begin();
+
+		while (enemyIterator != enemiesBis.end())
 		{
-			DrawText("GET READY!", glm::vec2(0.5f, 0.5f), glm::vec4(1, 0, 0, 1), 32, ALIGN_CENTER);
+			/* Checking for killed enemies. */
+			if (!(*enemyIterator)->isAlive())
+			{
+				_LOG_INFO() << "DESTROY EnemyShip";
+
+				enemyIterator = enemiesBis.erase(enemyIterator);
+
+				continue;
+			}
+
+			if ((*enemyIterator)->checkCollisionWith(spaceship))
+			{
+				_LOG_INFO() << "DEAD: YOU WERE HIT BY 'EnemyShip'.";
+
+				return;
+			}
+
+			/* Not dead: render. */
+			(*enemyIterator)->render(dt);
+
+			if ((*enemyIterator)->canShoot())
+			{
+				std::vector<glm::vec3> listTmp = (*enemyIterator)->getPosition();
+
+				for (std::vector<glm::vec3>::iterator itbis = listTmp.begin(); itbis != listTmp.end(); ++itbis)
+				{
+					enemyProjectiles.push_back(std::unique_ptr<Projectile>(
+						new Projectile((*itbis).x, (*itbis).y, (*itbis).z, 0, 0, -12)));
+				}
+			}
+
+			auto playersProjectileIterator = playersProjectiles.begin();
+
+			while (playersProjectileIterator != playersProjectiles.end())
+			{
+				if ((*enemyIterator)->checkCollisionWithProjectile((*playersProjectileIterator)->getPosition()))
+				{
+					_LOG_INFO() << "YOU KILLED 'EnemyShipBis'.";
+
+					enemyIterator = enemiesBis.erase(enemyIterator);
+
+					goto END_OF_LOOP1;
+				}
+
+				//(*playersProjectileIterator)->render(dt);
+
+				++playersProjectileIterator;
+			}
+
+			++enemyIterator;
+
+		END_OF_LOOP1:;
 		}
 	}
 
-/*	bool coll = dummyEnemy.checkCollisionWithProjectile(projectile);
+		auto it2 = enemyProjectiles.begin();
 
-	if (coll)
-	{
-		_LOG_INFO() << "=== Projectile collision ===";
-	}*/
-	//_LOG_INFO() << rand() % 1001;
-	/*if ((_timerEnemy1 + _delayEnemy1 < glfwGetTime()) && ((rand() % 1001) <= 10) && enemies.size() < 5)
-	{
-		_addEnemy1();
-		//_LOG_INFO() << "added EnemyShip";
-		//enemies.push_back(std::unique_ptr<EnemyShip>(new EnemyShip()));
-	}
-	else if ((_timerEnemy2 + _delayEnemy2 < glfwGetTime()) && ((rand() % 1001) <= 10) && enemiesBis.size() < 5)
-	{
-		_addEnemy2();
-	}
+		while(it2 != enemyProjectiles.end())
+		{
+			if ((*it2)->isOutsideScreen())
+			{
+				it2 = enemyProjectiles.erase(it2);
 
-	for (auto it = enemies.begin(), itEnd = enemies.end(); it != itEnd; ++it)
-	{
-		(*it)->render(dt);
-	}
+				continue;
+			}
 
-	for (auto it = enemiesBis.begin(), itEnd = enemiesBis.end(); it != itEnd; ++it)
-	{
-		(*it)->render(dt);
-	}*/
+			(*it2)->render(dt);
 
-	std::stringstream ss;
-	std::stringstream ss1;
+			if (spaceship.checkCollisionWithProjectile((*it2)->getPosition()))
+			{
+				_LOG_INFO() << "DEAD BY PROJECTILE!";
 
-	ss << "LIVES: " << _nLives;
-	ss1 << "POINTS: " << _points;
+				return;
+			}
 
-	DrawText((ss.str()).c_str(), glm::vec2(0.01f, 0.92f), glm::vec4(1, 0, 0, 1), 32, ALIGN_LEFT);
-	DrawText((ss1.str()).c_str(), glm::vec2(0.99f, 0.92f), glm::vec4(1, 0, 0, 1), 32, ALIGN_RIGHT);
-}
+			++it2;
+		}
 
-void CoreTP1::_addEnemy1()
-{
-	_LOG_INFO() << "added EnemyShip";
-	enemies.push_back(std::unique_ptr<EnemyShip>(new EnemyShip()));
+		auto it3 = playersProjectiles.begin();
 
-	_timerEnemy1 = glfwGetTime();
-}
+		while (it3 != playersProjectiles.end())
+		{
+			if ((*it3)->isOutsideScreen())
+			{
+				it3 = playersProjectiles.erase(it3);
 
-void CoreTP1::_addEnemy2()
-{
-	_LOG_INFO() << "added EnemyShipBis";
-	//enemies.push_back(std::unique_ptr<EnemyShip>(new EnemyShip()));
-	_timerEnemy2 = glfwGetTime();
+				continue;
+			}
+
+			(*it3)->render(dt);
+
+			++it3;
+		}
 }
 
 CoreTP1::~CoreTP1()
 {
+}
+
+void CoreTP1::_shootProjectile()
+{
+	glm::vec3 spaceshipPosition = spaceship.getPosition();
+
+	playersProjectiles.push_back(std::unique_ptr<Projectile>(
+		new Projectile(spaceshipPosition.x, spaceshipPosition.y, spaceshipPosition.z, 0, 0, 16)));
 }
 
 void CoreTP1::_timerTick()
@@ -214,11 +252,6 @@ void CoreTP1::_hitPlayer()
 
 void CoreTP1::OnKeyW(bool down)
 {
-	if (!_timerHasExpired || _dead)
-	{
-		return;
-	}
-
 	if (down)
 	{
 		spaceship.goForward();
@@ -231,11 +264,6 @@ void CoreTP1::OnKeyW(bool down)
 
 void CoreTP1::OnKeyA(bool down)
 {
-	if (!_timerHasExpired || _dead)
-	{
-		return;
-	}
-
 	if (down)
 	{
 		spaceship.goLeft();
@@ -248,11 +276,6 @@ void CoreTP1::OnKeyA(bool down)
 
 void CoreTP1::OnKeyS(bool down)
 {
-	if (!_timerHasExpired || _dead)
-	{
-		return;
-	}
-
 	if (down)
 	{
 		spaceship.goBackward();
@@ -265,11 +288,6 @@ void CoreTP1::OnKeyS(bool down)
 
 void CoreTP1::OnKeyD(bool down)
 {
-	if (!_timerHasExpired || _dead)
-	{
-		return;
-	}
-
 	if (down)
 	{
 		spaceship.goRight();
@@ -284,12 +302,12 @@ void CoreTP1::OnKeySPACE(bool down)
 {
 	if (!_timerHasExpired)
 	{
-		return;
+		//return;
 	}
 
 	if (_dead)
 	{
-		_dead   = false;
+		_dead = false;
 		_nLives = 5;
 		_points = 0;
 		_timerTick();
@@ -297,6 +315,8 @@ void CoreTP1::OnKeySPACE(bool down)
 
 	if (down)
 	{
+		_shootProjectile();
+
 		_LOG_INFO() << "SPACE";
 	}
 }
@@ -310,5 +330,3 @@ void CoreTP1::OnKeyTAB(bool down)
 		_LOG_INFO() << "TAB " << _invincibleMode;
 	}
 }
-
-

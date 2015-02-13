@@ -1,8 +1,8 @@
 #include "Projectile.h"
 
 Projectile::Projectile(double x, double y, double z, double dx, double dy, double dz) :
-    _outerSphere(glm::vec4(1.0f, 1.0f, 0, 0.7f), 8, 8, 0.5f),
-    _innerSphere(glm::vec4(0, 1.0f, 0, 1), 8, 8, 0.25f),
+	_outerSphere(glm::vec4(1.0f, 1.0f, 0, 0.7f), 16, 16, 5.0f),
+	_innerSphere(glm::vec4(0, 1.0f, 0, 1), 16, 16, 2.5f),
 	_positionX(x),
 	_positionY(y),
 	_positionZ(z),
@@ -15,11 +15,15 @@ Projectile::Projectile(double x, double y, double z, double dx, double dy, doubl
 
 Projectile::~Projectile()
 {
-	_LOG_INFO() << "~Projectile";
+
 }
 
 void Projectile::render(double dt)
 {
+	double positionXCopy = _positionX;
+	double positionYCopy = _positionY;
+	double positionZCopy = _positionZ;
+
 	_positionX += _dx * dt;
 	_positionY += _dy * dt;
 	_positionZ += _dz * dt;
@@ -35,15 +39,7 @@ glm::vec3 Projectile::getPosition()
 	return glm::vec3(_positionX, _positionY, _positionZ);
 }
 
-bool Projectile::isOutsideScreen()
+glm::vec3 Projectile::getOrientationVector()
 {
-	return (
-		((_dz < 0) && (_positionZ <= OUTSIDE_SCREEN_MINIMUM_Z))
-		||
-		((_dz > 0) && (_positionZ >= OUTSIDE_SCREEN_MAXIMUM_Z))
-		||
-		(_positionX <= OUTSIDE_SCREEN_MINIMUM_X)
-		||
-		(_positionX >= OUTSIDE_SCREEN_MAXIMUM_X)
-		);
+	return glm::vec3(_dx, _dy, _dz);
 }

@@ -143,7 +143,7 @@ void Shape::applyTransformatioMatrixAndDefineMinMaxXYZ(VertexPositionNormal* ver
 
 Shape::~Shape()
 {
-	//_LOG_INFO() << "~Shape";
+	_LOG_INFO() << "~Shape";
 	if (_vertexBuffer != BAD_BUFFER)
 		glDeleteBuffers(1, &_vertexBuffer);
 
@@ -264,7 +264,6 @@ void Box::Render()
 
 bool Box::containsPoint(glm::vec3 point)
 {
-	//return false;
 	/* Every time a frame is rendered, we must recalculate the inverse transformation matrix, but we only do it once
 	   per frame. */
 	if (!_inverseTransformationMatrixWasCalculated)
@@ -481,7 +480,6 @@ void Sphere::Render()
 
 bool Sphere::containsPoint(glm::vec3 point)
 {
-	//return false;
 	/* Please refer to Box::containsPoint() */
 	if (!_inverseTransformationMatrixWasCalculated)
 	{
@@ -626,7 +624,6 @@ void Cylinder::Render()
 
 bool Cylinder::containsPoint(glm::vec3 point)
 {
-	//return false;
 	/* Please refer to Box::containsPoint(). */
 	if (!_inverseTransformationMatrixWasCalculated)
 	{

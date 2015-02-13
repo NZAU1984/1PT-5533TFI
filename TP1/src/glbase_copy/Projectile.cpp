@@ -15,11 +15,15 @@ Projectile::Projectile(double x, double y, double z, double dx, double dy, doubl
 
 Projectile::~Projectile()
 {
-	_LOG_INFO() << "~Projectile";
+
 }
 
 void Projectile::render(double dt)
 {
+	double positionXCopy = _positionX;
+	double positionYCopy = _positionY;
+	double positionZCopy = _positionZ;
+
 	_positionX += _dx * dt;
 	_positionY += _dy * dt;
 	_positionZ += _dz * dt;
@@ -33,17 +37,4 @@ void Projectile::render(double dt)
 glm::vec3 Projectile::getPosition()
 {
 	return glm::vec3(_positionX, _positionY, _positionZ);
-}
-
-bool Projectile::isOutsideScreen()
-{
-	return (
-		((_dz < 0) && (_positionZ <= OUTSIDE_SCREEN_MINIMUM_Z))
-		||
-		((_dz > 0) && (_positionZ >= OUTSIDE_SCREEN_MAXIMUM_Z))
-		||
-		(_positionX <= OUTSIDE_SCREEN_MINIMUM_X)
-		||
-		(_positionX >= OUTSIDE_SCREEN_MAXIMUM_X)
-		);
 }

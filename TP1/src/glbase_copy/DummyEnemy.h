@@ -4,25 +4,24 @@
 
 #include "scene.h"
 
+#include "ThreeDObject.h"
+
 
 using namespace glm;
 
-class Projectile
+class DummyEnemy : public ThreeDObject
 {
 public:
-	Projectile(double x, double y, double z, double dx, double dy, double dz);
+	DummyEnemy(double x, double y, double z, double dx, double dy, double dz);
 
-	virtual ~Projectile();
+	virtual ~DummyEnemy();
 
 	void render(double dt);
 
-	glm::vec3 getPosition();
-
-	bool isOutsideScreen();
-
 protected:
-	Sphere _outerSphere;
-	Sphere _innerSphere;
+	Box _box;
+	Cylinder _cylinder;
+	Sphere _sphere;
 
 	double _positionX;
 	double _positionY;
@@ -31,6 +30,4 @@ protected:
 	double _dx;
 	double _dy;
 	double _dz;
-
-
 };

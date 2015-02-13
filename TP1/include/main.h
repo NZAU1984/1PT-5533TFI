@@ -70,6 +70,18 @@ namespace std
 };
 #endif
 
+#ifndef TP1_CONSTANTS
+
+#define TP1_CONSTANTS
+
+const double OUTSIDE_SCREEN_MINIMUM_X = -25.0f;
+const double OUTSIDE_SCREEN_MAXIMUM_X = 25.0f;
+
+const double OUTSIDE_SCREEN_MINIMUM_Z = -10.0f;
+const double OUTSIDE_SCREEN_MAXIMUM_Z = 80.0f;
+
+#endif
+
 // Misc Functions
 void onGLFWError(int code, const char* error);
 void debugGLError();

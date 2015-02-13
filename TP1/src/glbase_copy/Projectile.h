@@ -18,8 +18,6 @@ public:
 
 	glm::vec3 getPosition();
 
-	bool isOutsideScreen();
-
 protected:
 	Sphere _outerSphere;
 	Sphere _innerSphere;
@@ -31,6 +29,4 @@ protected:
 	double _dx;
 	double _dy;
 	double _dz;
-
-
 };

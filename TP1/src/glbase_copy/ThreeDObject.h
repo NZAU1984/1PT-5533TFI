@@ -6,12 +6,13 @@
 
 #include "BoundingBox.h"
 
-#include <list>
-
 #include "Projectile.h"
+
+#include <list>
 
 using namespace glm;
 
+/* Abstract class to contain 3D objects like Spaceship and enemies' ships. */
 class ThreeDObject
 {
 public:
@@ -22,12 +23,11 @@ public:
 	bool checkCollisionWith(ThreeDObject& otherObject);
 
 	bool checkCollisionWithProjectile(Projectile& projectile);
-	bool checkCollisionWithProjectile(glm::vec3 projectilePosition);
 
 protected:
 	BoundingBox* _boundingBox = NULL;
 
-	std::list<Shape *> _shapeList;
+	std::list<Shape*> _shapeList;
 
 	void _addShapeToList(Shape* shape);
 

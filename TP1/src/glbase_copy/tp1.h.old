@@ -1,5 +1,9 @@
 #pragma once
 #include <main.h>
+#include <list>
+#include <vector>
+#include <string>
+#include <sstream>
 #include "core.h"
 #include "scene.h"
 #include "spaceship.h"
@@ -7,7 +11,7 @@
 #include "Projectile.h"
 #include "enemyship.h"
 #include "enemyshipbis.h"
-#include <list>
+
 class CoreTP1 : public Core
 {
 public:
@@ -25,10 +29,11 @@ protected:
 
 protected:
 	Spaceship spaceship;
-    std::list<std::unique_ptr<EnemyShip>> enemies;
-    std::list<std::unique_ptr<EnemyShipBis>> enemiesBis;
-    std::list<std::unique_ptr<Projectile>> enemyProjectiles;
-	std::list<std::unique_ptr<Projectile>> playersProjectiles;
+	DummyEnemy dummyEnemy;
+	Projectile projectile;
+
+	std::list<std::unique_ptr<EnemyShip>> enemies;
+	std::list<std::unique_ptr<EnemyShipBis>> enemiesBis;
 
 	bool _invincibleMode = false;
 
@@ -48,16 +53,13 @@ protected:
 
 	void _hitPlayer();
 
-	//void _addEnemy1();
+	void _addEnemy1();
 
-	//void _addEnemy2();
+	void _addEnemy2();
 
 	double _timerEnemy1 = 0;
 	double _timerEnemy2 = 0;
 
 	double _delayEnemy1 = 3;
 	double _delayEnemy2 = 3;
-
-	void _shootProjectile();
-
 };

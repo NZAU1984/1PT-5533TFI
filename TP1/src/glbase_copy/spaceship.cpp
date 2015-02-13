@@ -151,7 +151,7 @@ glm::mat4 leftFinTransformationMatrix =
 	* finShear
 	* glm::scale(vec3(finWidth, finHeight, finDepth));
 
-/* Constructor. Builds all shapes. Some shapes like fins (ailerons en franï¿½ais) will never change, except when the
+/* Constructor. Builds all shapes. Some shapes like fins (ailerons en français) will never change, except when the
    mainBody shape (a Box) is translated. We can then avoid applying a transformation matrix to them at every frame
    rendering, so we apply initial transformation matrices (shear transformation and translation) to the right here. */
 Spaceship::Spaceship() :
@@ -160,8 +160,8 @@ Spaceship::Spaceship() :
 	leftConnector(connectorColor, leftConnectorTransformationMatrix),
 	rightConnector(connectorColor, flipX * leftConnectorTransformationMatrix),
 
-    leftMotor(motorColor, 100, motorHeight, motorRadius, leftMotorTransformationMatrix),
-    rightMotor(motorColor, 100, motorHeight, motorRadius, flipX * leftMotorTransformationMatrix), // WARNING
+	leftMotor(motorColor, 100, motorHeight, motorRadius, leftMotorTransformationMatrix),
+	rightMotor(motorColor, 100, motorHeight, motorRadius, flipX * leftMotorTransformationMatrix), // WARNING
 
 	leftMotorOuterFlame(outerMotorFlameColor, 100, outerMotorFlameHeight, outerMotorFlameRadius, 
 		leftMotorOuterFlameTransformationMatrix),
@@ -547,17 +547,6 @@ void Spaceship::calculatePosition(double dt)
 	}
 }
 
-glm::vec3 Spaceship::getPosition()
-{
-	return glm::vec3(_positionX, 0, _positionZ);
-}
-
-void Spaceship::resetPosition()
-{
-	_positionX = 0;
-	_positionZ = 0;
-}
-
 /* Below are methods which are called with certain keys (for example 'W' for 'FORWARD') to control the spaceship
 direction. */
 
@@ -657,6 +646,20 @@ void Spaceship::stopGoingBackward()
 	}
 }
 
+void Spaceship::resetPosition()
+{
+	double positionXCopy = _positionX;
+	double positionZCopy = _positionZ;
+	
+	_positionX = 0;
+	_positionZ = 0;
+
+	_translateBoundingBox(_positionX - positionXCopy, 0, _positionZ - positionZCopy);
+
+	_speedX = 0;
+	_speedZ = 0;
+}
+
 bool Spaceship::isGoingForward()
 {
 	return (sign(_speedZ) > 0);
@@ -715,6 +718,18 @@ bool Spaceship::isNotAcceleratingZ()
 bool Spaceship::isNotAcceleratingX()
 {
 	return (sign(_currentAccelerationX) == 0);
+}
+
+std::vector<glm::vec3> Spaceship::getPosition()
+{
+	std::vector<glm::vec3> theVector;
+
+	theVector.push_back(vec3(0, 0, 0));
+	theVector.push_back(vec3(1, 1, 1));
+	theVector.push_back(vec3(2, 2, 2));
+	theVector.push_back(vec3(3, 3, 3));
+
+	return theVector;
 }
 
 

@@ -4,7 +4,6 @@
 
 #include "scene.h"
 
-
 using namespace glm;
 
 class Projectile
@@ -18,7 +17,7 @@ public:
 
 	glm::vec3 getPosition();
 
-	bool isOutsideScreen();
+	glm::vec3 getOrientationVector();
 
 protected:
 	Sphere _outerSphere;
@@ -31,6 +30,4 @@ protected:
 	double _dx;
 	double _dy;
 	double _dz;
-
-
 };

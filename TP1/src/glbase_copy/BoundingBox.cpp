@@ -3,7 +3,7 @@
 /* Constructor, defines 8 required vertices to create an appropriate box that can handle rotations. */
 BoundingBox::BoundingBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ)
 {
-	//_LOG_INFO() << "BB constructor";
+	_LOG_INFO() << "BB constructor";
 	_minX = minX;
 	_maxX = maxX;
 	_minY = minY;
@@ -11,7 +11,7 @@ BoundingBox::BoundingBox(double minX, double minY, double minZ, double maxX, dou
 	_minZ = minZ;
 	_maxZ = maxZ;
 
-	//_LOG_INFO() << "X [" << minX << ", " << maxX << " Y[" << minY << ", " << maxY << "] Z[" << minZ << ", " << maxZ << "]";
+	_LOG_INFO() << "X [" << minX << ", " << maxX << " Y[" << minY << ", " << maxY << "] Z[" << minZ << ", " << maxZ << "]";
 }
 
 void BoundingBox::translate(double dx, double dy, double dz)
@@ -40,9 +40,24 @@ bool BoundingBox::checkCollision(BoundingBox* otherBox)
 		return false;
 	}
 
-	//_LOG_INFO() << "COLLIDE !";
+	_LOG_INFO() << "COLLIDE !";
 
 	return true;
 }
 
+bool BoundingBox::containsPoint(glm::vec3* point)
+{
+	if (
+		(_maxZ < point->z)
+		|| (_minZ > point->z)
+		|| (_maxX < point->x)
+		|| (_minX > point->x)
+		|| (_maxY < point->y)
+		|| (_minY > point->y)
+		)
+	{
+		return false;
+	}
 
+	return true;
+}
